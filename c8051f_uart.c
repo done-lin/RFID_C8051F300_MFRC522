@@ -16,9 +16,10 @@ char data gByte[UART_QTY];//the SBUF byte, it tells what byte you are handling
 
 const unsigned char code gTestingArray[5]={10,11,12,13,14};
 
-
+////#define Lin_Debug
 void UART_send_str(unsigned char UartNr, unsigned char *ucString)
 {
+#ifdef Lin_Debug
 	unsigned char strCnt = 0;
 	while(*(ucString+strCnt) != 0){
 	gUARTTxBuffer[UartNr][strCnt] = *(ucString+strCnt);
@@ -32,6 +33,9 @@ void UART_send_str(unsigned char UartNr, unsigned char *ucString)
 	gByte[UartNr] = 0;
 	gTXReady[UartNr] = 0;
 	TI0 = 1; //start to send uart string
+#elseif
+	;
+#endif
 }
 
 

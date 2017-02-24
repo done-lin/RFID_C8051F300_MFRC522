@@ -2,7 +2,7 @@
 #define __MFRC522_H__
 
 
-#define MAXRLEN 2
+#define MAXRLEN 18
 #define SLA_ADDR 0x00
 #define nop  _nop_()
 
@@ -13,9 +13,9 @@ extern signed char pcdReset(void);
 extern signed char pcdAuthent(void);
 extern void pcdAntennaOn(void);
 extern void pcdAntennaOff(void);
-extern signed char pcdRequest(void);   
-extern char pcdAnticoll(unsigned char *pSnr);
-extern char pcdSelect(unsigned char *pSnr);         
+extern signed char pcdRequest(unsigned char *pOutData, unsigned char *pOutLenBit);   
+extern signed char pcdAnticoll(unsigned char *pSnr);
+extern signed char pcdSelect(unsigned char *pSnr);         
 extern char pPcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);     
 extern char pcdRead(unsigned char addr,unsigned char *pData);     
 extern char pcdWrite(unsigned char addr,unsigned char *pData);    
