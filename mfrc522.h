@@ -2,7 +2,7 @@
 #define __MFRC522_H__
 
 
-#define MAXRLEN 24
+#define MAXRLEN 18
 #define SLA_ADDR 0x00
 #define nop  _nop_()
 
@@ -16,17 +16,17 @@ extern void pcdAntennaOff(void);
 extern signed char pcdRequest(unsigned char *pOutData, unsigned char *pOutLenBit);   
 extern signed char pcdAnticoll(unsigned char *pSnr);
 extern signed char pcdSelect(unsigned char *pSnr);         
-extern char pPcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);     
+extern signed char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);     
 extern char pcdRead(unsigned char addr,unsigned char *pData);     
-extern char pcdWrite(unsigned char addr,unsigned char *pData);    
+extern signed char pcdWrite(unsigned char addr,unsigned char *pData);    
 extern char pcdValue(unsigned char dd_mode,unsigned char addr,unsigned char *pValue);   
 extern char pcdBakValue(unsigned char sourceaddr, unsigned char goaladdr);                                 
 extern char pcdHalt(void);
-extern char pcdComMF522(unsigned char Command, 
+extern signed char pcdComMF522(unsigned char Command, 
                  unsigned char *pInData, 
                  unsigned char InLenByte,
                  unsigned char *pOutData, 
-                 unsigned int  *pOutLenBit);
+                 unsigned char  *pOutLenBit);
 extern void calulateCRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutData);
 extern void writeRawRc(unsigned char Address,unsigned char value);
 extern unsigned char readRawRc(unsigned char Address); 

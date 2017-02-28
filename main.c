@@ -7,8 +7,10 @@
 #include "common_i2c.h"
 #include "mfrc522.h"
 
-sbit testing_bit = P0^3;
-
+//sbit testing_bit = P0^3;
+unsigned char code authentKeyA[2][6]={{0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+	{0xff, 0xff, 0xff, 0xff, 0xff, 0xff}};
+	
 unsigned char gI2CBuffer[8]={0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72};
 
 void main(void)
@@ -38,28 +40,30 @@ void main(void)
 	pcdReset();
 	while (1){
 	
-	//pcdAuthent();
-	//if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] != 0 && gByte[NR_UART0] == 13){//receive all char in buf, when receive enter key , send the UartBuffer
-	//	gTXReady[NR_UART0] = 0;		// Set the flag to zero
-	//	TI0 = 1;                      // Set transmit flag to 1 
-	//	}
-		
-	pcdRequest(gI2CBuffer, &i);
-	//while(gTXReady[NR_UART0]==0){;};
-	//UART_send_array(NR_UART0, gI2CBuffer, 6);
+	if(pcdRequest(gI2CBuffer, &i) == MI_OK){
+		while(gTXReady[NR_UART0]==0){;};
+		UART_send_str(NR_UART0, "RQSOK\n");
+	}
 		
 	pcdAnticoll(gI2CBuffer);
+		
 	while(gTXReady[NR_UART0]==0){;};
 	UART_send_array(NR_UART0, gI2CBuffer, 6);
-//	pcdSelect(gI2CBuffer);
-		
-	//calulateCRC(gI2CBuffer, 2, gI2CBuffer+2);
-	//while(gTXReady[NR_UART0]==0){;};
-	//UART_send_array(NR_UART0, gI2CBuffer, 6);
+
+	if(pcdSelect(gI2CBuffer) == MI_OK){
+		while(gTXReady[NR_UART0]==0){;};
+		UART_send_str(NR_UART0, "SlectOK\n");
+	}
+	
+	if( PcdAuthState(PICC_AUTHENT1A, 1, authentKeyA[0], gI2CBuffer)== MI_OK){
+		while(gTXReady[NR_UART0]==0){;};
+		UART_send_str(NR_UART0, "AuthenOK\n");
+	}
+
 		
 	for(i=0; i<250; i++){
 		for(j=0; j<250; j++){
-			_nop_();
+			_nop_();_nop_();_nop_();
 		}
 	}
 	      
