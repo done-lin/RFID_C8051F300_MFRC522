@@ -15,7 +15,7 @@ void I2C_nop_delay_us(unsigned char us)//大约延迟4.7us，根据实际系统时钟微调
 	_nop_();_nop_();
 	_nop_();_nop_();
 	_nop_();_nop_();
-	//_nop_();_nop_();
+	_nop_();_nop_();
 	//_nop_();_nop_();
 	//_nop_();
 

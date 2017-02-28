@@ -2,7 +2,7 @@
 #define __MFRC522_H__
 
 
-#define MAXRLEN 18
+#define MAXRLEN 24
 #define SLA_ADDR 0x00
 #define nop  _nop_()
 
