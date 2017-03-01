@@ -2,7 +2,7 @@
 #define __C8051F_UART_H__
 
 #define BAUDRATE      115200           // Baud rate of UART in bps
-#define UART_BUFFERSIZE 14
+#define UART_BUFFERSIZE 16
 #define UART_QTY	1
 #define NR_UART0	0
 

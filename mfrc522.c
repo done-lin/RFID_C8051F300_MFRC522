@@ -6,7 +6,7 @@
 
 
 
-signed char PcdComMF522(unsigned char Command, 
+signed char pcd_com_MF522(unsigned char Command, 
                  unsigned char *pInData, 
                  unsigned char InLenByte,
                  unsigned char *pOutData, 
@@ -26,10 +26,11 @@ signed char PcdComMF522(unsigned char Command,
           waitFor = 0x30;
 			}
 		//---------------------------------//
-		lastBits = irqEn|0x80;
+		lastBits = (irqEn|0x80);
 		if(I2C_write_str(SLA_ADDR, ComIEnReg, &lastBits, 0x01)) {
 			returnStatus = MI_OK;
 		} else {
+			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "ComIe\n");
 			returnStatus = MI_ERR;
 			return returnStatus;
@@ -40,6 +41,7 @@ signed char PcdComMF522(unsigned char Command,
 			lastBits &= 0x7f;
 			I2C_write_str(SLA_ADDR, ComIrqReg, &lastBits, 0x01);
 		} else {
+			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "comIR\n");
 			returnStatus = MI_ERR;
 			return returnStatus;
@@ -50,6 +52,7 @@ signed char PcdComMF522(unsigned char Command,
     if(I2C_write_str(SLA_ADDR, CommandReg, &lastBits, 0x01)) {
 			returnStatus = MI_OK;
 		} else {
+			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0,  "CMD00\n");
 			returnStatus = MI_ERR;
 			return returnStatus;
@@ -59,30 +62,28 @@ signed char PcdComMF522(unsigned char Command,
     if(I2C_read_str(SLA_ADDR, FIFOLevelReg, &lastBits, 0x01)){//setbitmask
 			lastBits |= 0x80;
 			I2C_write_str(SLA_ADDR, FIFOLevelReg, &lastBits, 0x01);
-			returnStatus = MI_OK;
 		} else {
+			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "FILev\n");
 			returnStatus = MI_ERR;
-			return returnStatus;
+			goto label_end_com;
 		}
     //---------------------------------//
 		
 		if(I2C_write_str(SLA_ADDR, FIFODataReg, pInData, InLenByte)) {
-			returnStatus = MI_OK;
 		} else {
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "TFIFODa\n");
 			returnStatus = MI_ERR;
-			return returnStatus;
+			goto label_end_com;
 		}
 		
-		lastBits = Command;
-    if(I2C_write_str(SLA_ADDR, CommandReg, &lastBits, 0x01)) {
+    if(I2C_write_str(SLA_ADDR, CommandReg, &Command, 0x01)) {
 		returnStatus = MI_OK;
 		} else {
 			UART_send_str(NR_UART0, "TranCMD\n");
 			returnStatus = MI_ERR;
-			return returnStatus;
+			goto label_end_com;
 		}
    
     
@@ -90,11 +91,11 @@ signed char PcdComMF522(unsigned char Command,
 			if(I2C_read_str(SLA_ADDR, BitFramingReg, &lastBits, 0x01)){//setbitmask
 				lastBits |= 0x80;
 				I2C_write_str(SLA_ADDR, BitFramingReg, &lastBits, 0x01);
-				returnStatus = MI_OK;
+
 			} else {
 				UART_send_str(NR_UART0, "BitFmin\n");
 				returnStatus = MI_ERR;
-				return returnStatus;
+				goto label_end_com;
 			}
 		}
     for(returnStatus=0; returnStatus<127; returnStatus++){
@@ -111,18 +112,17 @@ signed char PcdComMF522(unsigned char Command,
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "ComRD\n");
 			returnStatus = MI_ERR;
-			return returnStatus;
+			goto label_end_com;
 		}
 		
     //ClearBitMask(BitFramingReg,0x80);
 		if(I2C_read_str(SLA_ADDR, BitFramingReg, &returnStatus, 0x01)){//clearbitmask
 			returnStatus &= 0x7f;
 			I2C_write_str(SLA_ADDR, BitFramingReg, &returnStatus, 0x01);
-			returnStatus = MI_OK;
 		} else {
 			UART_send_str(NR_UART0, "BitFrm2\n");
 			returnStatus = MI_ERR;
-			return returnStatus;
+			goto label_end_com;
 		}
 	      
     if(I2C_read_str(SLA_ADDR, ErrorReg, &lastBits, 0x01)){
@@ -167,14 +167,12 @@ signed char PcdComMF522(unsigned char Command,
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "31Err\n");
 			returnStatus = MI_ERR;
-			return returnStatus;
 		}
    
-
+label_end_com:
    	if(I2C_read_str(SLA_ADDR, ControlReg, &lastBits, 0x01)){//setbitmask
 			lastBits |= 0x80;
 			I2C_write_str(SLA_ADDR, ControlReg, &lastBits, 0x01);
-			returnStatus = MI_OK;
 		} else {
 			UART_send_str(NR_UART0, "18ComIrq\n");
 			returnStatus = MI_ERR;
@@ -182,7 +180,6 @@ signed char PcdComMF522(unsigned char Command,
 		
    	lastBits = PCD_IDLE;
     if(I2C_write_str(SLA_ADDR, CommandReg, &lastBits, 0x01)) {
-		returnStatus = MI_OK;
 		} else {
 			UART_send_str(NR_UART0, "CMD04\n");
 			returnStatus = MI_ERR;
@@ -191,7 +188,7 @@ signed char PcdComMF522(unsigned char Command,
 }
 
 
-void calulateCRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutData)
+void calulate_CRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutData)
 {
 	unsigned char tmpVal, n;
 	if(I2C_read_str(SLA_ADDR, DivIrqReg, &tmpVal, 0x01)){//clearbitmask
@@ -248,7 +245,7 @@ void calulateCRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutDat
 		return;
 }
 
-signed char pcdReset(void)
+signed char pcd_reset(void)
 {
 		unsigned char tmpVal;
 		tmpVal = PCD_RESETPHASE;
@@ -353,13 +350,14 @@ signed char pcdReset(void)
 }
 
 
-signed char pcdRequest(unsigned char *pOutData, unsigned char *pOutLenBit)
+signed char pcd_request(unsigned char *pOutData, unsigned char *pOutLenBit)
 {
 		unsigned char tmpVal, returnStatus;
 	
 		if(I2C_read_str(SLA_ADDR, Status2Reg, &tmpVal, 0x01)){//clearbitmask
 			tmpVal &= 0xf7;
 			I2C_write_str(SLA_ADDR, Status2Reg, &tmpVal, 0x01);
+			returnStatus = MI_OK;
 		} else {
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "19statu2\n");
@@ -369,6 +367,7 @@ signed char pcdRequest(unsigned char *pOutData, unsigned char *pOutLenBit)
 		
 		tmpVal = 0x07;
     if(I2C_write_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01)) {
+			returnStatus = MI_OK;
 		} else {
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "20BitF\n");
@@ -379,6 +378,7 @@ signed char pcdRequest(unsigned char *pOutData, unsigned char *pOutLenBit)
 		if(I2C_read_str(SLA_ADDR, TxControlReg, &tmpVal, 0x01)){//setbitmask
 			tmpVal |= 0x03;
 			I2C_write_str(SLA_ADDR, TxControlReg, &tmpVal, 0x01);
+			returnStatus = MI_OK;
 		} else {
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "21txq\n");
@@ -387,16 +387,19 @@ signed char pcdRequest(unsigned char *pOutData, unsigned char *pOutLenBit)
 		}
 		
 		tmpVal=0x52;
-		returnStatus = PcdComMF522(PCD_TRANSCEIVE,&tmpVal,1,pOutData,pOutLenBit);
+		returnStatus = pcd_com_MF522(PCD_TRANSCEIVE,&tmpVal,1,pOutData,pOutLenBit);
 			
 		return returnStatus;
 }
 
 
-signed char pcdAnticoll(unsigned char *pSnr)
+signed char pcd_anti_coll(unsigned char *pSnr)
 {
-		unsigned char tmpVal, returnStatus;
-		unsigned char comBuf[2];
+		unsigned char tmpVal, returnStatus, snrCheck;
+		unsigned char data ucComMF522Buf[5];
+		
+		snrCheck = 0;
+	
 		if(I2C_read_str(SLA_ADDR, Status2Reg, &tmpVal, 0x01)){//clearbitmask
 			tmpVal &= 0xf7;
 			I2C_write_str(SLA_ADDR, Status2Reg, &tmpVal, 0x01);
@@ -404,7 +407,6 @@ signed char pcdAnticoll(unsigned char *pSnr)
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "34statu2\n");
 			returnStatus = MI_ERR;
-			return returnStatus;
 		}
 		
 		tmpVal = 0x00;
@@ -422,160 +424,25 @@ signed char pcdAnticoll(unsigned char *pSnr)
 		} else {
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "36coll\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		//-------------------------------------------//
-		tmpVal = 0x77|0x80;
-    if(I2C_write_str(SLA_ADDR, ComIEnReg, &tmpVal, 0x01)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "ComIEn\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
+			return MI_ERR;
 		}
 		
-		if(I2C_read_str(SLA_ADDR, ComIrqReg, &tmpVal, 0x01)){
-			tmpVal &= 0x7f;
-			I2C_write_str(SLA_ADDR, ComIrqReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "ComIrq\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		
-		tmpVal = PCD_IDLE;
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "Comma\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, FIFOLevelReg, &tmpVal, 0x01)){
-			tmpVal |= 0x80;
-			I2C_write_str(SLA_ADDR, FIFOLevelReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "ComIrqR\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
+		ucComMF522Buf[0] = PICC_ANTICOLL1;
+		ucComMF522Buf[1] = 0x20;
 
-		comBuf[0] = PICC_ANTICOLL1;  comBuf[1] = 0x20;
-		if(I2C_write_str(SLA_ADDR, FIFODataReg, comBuf, 0x02)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "TFIFODa\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
+
+		returnStatus = pcd_com_MF522(PCD_TRANSCEIVE,ucComMF522Buf,2,ucComMF522Buf,&tmpVal);
 		
-		tmpVal = 0x0c;//trans cmd
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "41.x CMD\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01)){//setbitmask
-			tmpVal |= 0x80;
-			I2C_write_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "BitF\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		for(returnStatus = 0; returnStatus < 50; returnStatus++) {
-		 		tmpVal = 255;
-				do 
-				{
-						 I2C_read_str(SLA_ADDR, ComIrqReg, comBuf, 0x01);
-						 tmpVal--;
+		if (returnStatus == MI_OK){
+    	 for (tmpVal=0; tmpVal<4; tmpVal++){   
+             *(pSnr+tmpVal)  = ucComMF522Buf[tmpVal];
+             snrCheck ^= ucComMF522Buf[tmpVal];
+         }
+				 
+         if (snrCheck != ucComMF522Buf[tmpVal]){
+						returnStatus = MI_ERR;
 				}
-				while ((tmpVal != 0) && !(comBuf[0] & 0x01) && !(comBuf[0] & 0x30));
-		}
-			
-		if(tmpVal == 0) {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "43cantRD\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01)){
-			tmpVal &= 0x7f;
-			I2C_write_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "44BitFram\n");
-			returnStatus = MI_ERR;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, ErrorReg, &tmpVal, 0x01)){
-			if(!(tmpVal&0x1B)) {
-				if(comBuf[0] & 0x77 & 0x01) {
-					//while(gTXReady[NR_UART0]==0){;};
-					//UART_send_str(NR_UART0, "NOTAG2\n");
-					returnStatus = MI_NOTAGERR;
-					} else {
-						//while(gTXReady[NR_UART0]==0){;};//add for test
-						//UART_send_str(NR_UART0, "t2\n");//add for test
-						I2C_read_str(SLA_ADDR, FIFOLevelReg, &tmpVal, 0x01);
-            if(tmpVal > MAXRLEN){
-							tmpVal=MAXRLEN;
-						} else if(tmpVal == 0) {
-							tmpVal = 1;
-						}
-						if(!I2C_read_str(SLA_ADDR, FIFODataReg, pSnr, tmpVal)){
-								while(gTXReady[NR_UART0]==0){;};
-								UART_send_str(NR_UART0, "CntRDSn\n");
-								returnStatus = MI_ERR;
-								return returnStatus;
-							} else {
-								returnStatus = MI_OK;
-							}
-					}
-			} else {
-				while(gTXReady[NR_UART0]==0){;};
-				UART_send_str(NR_UART0, "45Err\n");
-				returnStatus = MI_ERR;
-				return returnStatus;
-			}
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "46Err\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		
-		if(I2C_read_str(SLA_ADDR, ControlReg, &tmpVal, 0x01)){
-			tmpVal |= 0x80;
-			I2C_write_str(SLA_ADDR, ControlReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "47ComIrq\n");
-			returnStatus = MI_ERR;
-		}
-		
-		tmpVal = PCD_IDLE;
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "48Comma\n");
-			returnStatus = MI_ERR;
-		}
-		//---------------------------------------------------//
-		
+    }
 		
 		if(I2C_read_str(SLA_ADDR, CollReg, &tmpVal, 0x01)){
 			tmpVal |= 0x80;
@@ -583,16 +450,16 @@ signed char pcdAnticoll(unsigned char *pSnr)
 		} else {
 			while(gTXReady[NR_UART0]==0){;};
 			UART_send_str(NR_UART0, "49ComIrq\n");
-			returnStatus = MI_ERR;
+			return MI_ERR;
 		}
 		
 		return returnStatus;
 }
 
-signed char pcdSelect(unsigned char *pSnr)
+signed char pcd_select(unsigned char *pSnr)
 {
 		unsigned char ucComMF522Buf[9];
-		unsigned char tmpVal, returnStatus, lastBits;
+		unsigned char tmpVal, returnStatus;
 	
 		ucComMF522Buf[0] = PICC_ANTICOLL1;
     ucComMF522Buf[1] = 0x70;
@@ -602,7 +469,7 @@ signed char pcdSelect(unsigned char *pSnr)
     	ucComMF522Buf[6]  ^= *(pSnr+tmpVal);
     }
 		
-    calulateCRC(ucComMF522Buf,7,&ucComMF522Buf[7]);
+    calulate_CRC(ucComMF522Buf,7,&ucComMF522Buf[7]);
 		
 		if(I2C_read_str(SLA_ADDR, Status2Reg, &tmpVal, 0x01)){//clearbitmask
 			tmpVal &= 0xf7;
@@ -613,172 +480,17 @@ signed char pcdSelect(unsigned char *pSnr)
 			returnStatus = MI_ERR;
 			return returnStatus;
 		}
-		
-		//-------------------------------------------//
-		tmpVal = 0x77|0x80;
-    if(I2C_write_str(SLA_ADDR, ComIEnReg, &tmpVal, 0x01)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "ComIEn\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, ComIrqReg, &tmpVal, 0x01)){
-			tmpVal &= 0x7f;
-			I2C_write_str(SLA_ADDR, ComIrqReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "ComIrq\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		
-		tmpVal = PCD_IDLE;
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "Comma\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, FIFOLevelReg, &tmpVal, 0x01)){
-			tmpVal |= 0x80;
-			I2C_write_str(SLA_ADDR, FIFOLevelReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "ComIrqR\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
 
-		if(I2C_write_str(SLA_ADDR, FIFODataReg, ucComMF522Buf, 0x09)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "TFIFODa\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
+		returnStatus = pcd_com_MF522(PCD_TRANSCEIVE,ucComMF522Buf,9,ucComMF522Buf,&tmpVal);
 		
-		tmpVal = 0x0c;//trans cmd
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "41.x CMD\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01)){//setbitmask
-			tmpVal |= 0x80;
-			I2C_write_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "BitF\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		for(returnStatus = 0; returnStatus < 50; returnStatus++) {
-		 		tmpVal = 255;
-				do 
-				{
-						 I2C_read_str(SLA_ADDR, ComIrqReg, ucComMF522Buf, 0x01);
-						 tmpVal--;
-				}
-				while ((tmpVal != 0) && !(ucComMF522Buf[0] & 0x01) && !(ucComMF522Buf[0] & 0x30));
-		}
-			
-		if(tmpVal == 0) {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "43cantRD\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01)){
-			tmpVal &= 0x7f;
-			I2C_write_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "44BitFram\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, ErrorReg, &tmpVal, 0x01)){
-			if(!(tmpVal&0x1B)) {
-				if(ucComMF522Buf[0] & 0x77 & 0x01) {
-					returnStatus = MI_NOTAGERR;
-					} else {
-
-						I2C_read_str(SLA_ADDR, FIFOLevelReg, &tmpVal, 0x01);
-						I2C_read_str(SLA_ADDR, ControlReg, &lastBits, 0x01);
-						lastBits &= 0x07;
-            if (lastBits) {
-							lastBits = (tmpVal-1)*8 + lastBits;
-							} else { 
-							lastBits = tmpVal*8; 
-						}
-						
-            if(tmpVal > MAXRLEN){
-							tmpVal=MAXRLEN;
-						} else if(tmpVal == 0) {
-							tmpVal = 1;
-						}
-						
-						if(!I2C_read_str(SLA_ADDR, FIFODataReg, ucComMF522Buf, tmpVal)){
-								while(gTXReady[NR_UART0]==0){;};
-								UART_send_str(NR_UART0, "CntRDSn\n");
-								returnStatus = MI_ERR;
-								return returnStatus;
-							} else {
-								returnStatus = MI_OK;
-							}
-					}
-			} else {
-				while(gTXReady[NR_UART0]==0){;};
-				UART_send_str(NR_UART0, "45Err\n");
-				returnStatus = MI_ERR;
-				return returnStatus;
-			}
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "46Err\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		
-		if(I2C_read_str(SLA_ADDR, ControlReg, &tmpVal, 0x01)){
-			tmpVal |= 0x80;
-			I2C_write_str(SLA_ADDR, ControlReg, &tmpVal, 0x01);
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "47ComIrq\n");
-			returnStatus = MI_ERR;
-		}
-		
-		tmpVal = PCD_IDLE;
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "48Comma\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		//---------------------------------------------------//
-		if ((returnStatus == MI_OK) && (lastBits == 0x18)){
+		if ((returnStatus == MI_OK) && (tmpVal == 0x18)){
 			returnStatus = MI_OK;
 		} else {
 			if(returnStatus != MI_OK) {
 				while(gTXReady[NR_UART0]==0){;};
 				UART_send_str(NR_UART0, "statErr\n");
 				returnStatus = MI_ERR;
-			}else if(lastBits != 0x18) {
+			}else if(tmpVal != 0x18) {
 				while(gTXReady[NR_UART0]==0){;};
 				UART_send_str(NR_UART0, "outbitErr\n");
 				returnStatus = MI_ERR;
@@ -789,9 +501,9 @@ signed char pcdSelect(unsigned char *pSnr)
 }
 
 
-signed char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr)
+signed char pcd_auth_state(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr)
 {
-		unsigned char tmpVal, returnVal, returnStatus;
+		unsigned char tmpVal, returnStatus;
 		unsigned char ucComMF522Buf[12];
 	
 		ucComMF522Buf[0] = auth_mode;
@@ -805,113 +517,7 @@ signed char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned cha
 			ucComMF522Buf[tmpVal+8] = *(pSnr + tmpVal);
 		}
 
-		tmpVal = 0x12|0x80;
-    if(I2C_write_str(SLA_ADDR, ComIEnReg, &tmpVal, 0x01)) {
-		} else {
-			UART_send_str(NR_UART0, "09ComIEn\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, ComIrqReg, &tmpVal, 0x01)){
-			tmpVal &= 0x7f;
-			I2C_write_str(SLA_ADDR, ComIrqReg, &tmpVal, 0x01);
-		} else {
-			UART_send_str(NR_UART0, "10ComIrq\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		
-		tmpVal = PCD_IDLE;
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			UART_send_str(NR_UART0, "11Comma\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, FIFOLevelReg, &tmpVal, 0x01)){
-			tmpVal |= 0x80;
-			I2C_write_str(SLA_ADDR, FIFOLevelReg, &tmpVal, 0x01);
-		} else {
-			UART_send_str(NR_UART0, "12ComIrqReg\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-
-			if(I2C_write_str(SLA_ADDR, FIFODataReg, ucComMF522Buf, 12)) {
-			} else {
-				UART_send_str(NR_UART0, "13FIFODa\n");
-				returnStatus = MI_ERR;
-				return returnStatus;
-			}
-		
-		tmpVal = 0x0E;
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			UART_send_str(NR_UART0, "15CMD\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		for(returnStatus = 0; returnStatus < 50; returnStatus++) {
-			tmpVal = 255;
-			do 
-			{
-				 I2C_read_str(SLA_ADDR, ComIrqReg, &returnVal, 0x01);
-				 tmpVal--;
-			}
-			while ((tmpVal != 0) && !(returnVal & 0x01) && !(returnVal & 0x10));
-		}
-			
-		if(tmpVal == 0) {
-			UART_send_str(NR_UART0, "cantRD\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		if(I2C_read_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01)){
-			tmpVal &= 0x7f;
-			I2C_write_str(SLA_ADDR, BitFramingReg, &tmpVal, 0x01);
-		} else {
-			UART_send_str(NR_UART0, "14BitFram\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-		if(I2C_read_str(SLA_ADDR, ErrorReg, &tmpVal, 0x01)){
-			if(!(tmpVal&0x1B)) {
-				if(returnVal&0x01&0x12) { 
-					returnStatus = MI_NOTAGERR;
-					} else {
-						returnStatus = MI_OK;
-					}
-			} else {
-				UART_send_str(NR_UART0, "15Err\n");
-				returnStatus = MI_ERR;
-			}
-		} else {
-			UART_send_str(NR_UART0, "16Err\n");
-			returnStatus = MI_ERR;
-			return returnStatus;
-		}
-		
-
-		if(I2C_read_str(SLA_ADDR, ControlReg, &tmpVal, 0x01)){
-			tmpVal |= 0x80;
-			I2C_write_str(SLA_ADDR, ControlReg, &tmpVal, 0x01);
-		} else {
-			UART_send_str(NR_UART0, "18ComIrq\n");
-			returnStatus = MI_ERR;
-		}
-		
-		tmpVal = PCD_IDLE;
-    if(I2C_write_str(SLA_ADDR, CommandReg, &tmpVal, 0x01)) {
-		} else {
-			UART_send_str(NR_UART0, "17Comma\n");
-			returnStatus = MI_ERR;
-		}
+		returnStatus = pcd_com_MF522(PCD_AUTHENT,ucComMF522Buf,12,ucComMF522Buf,&tmpVal);
 		
 		if(I2C_read_str(SLA_ADDR, Status2Reg, &tmpVal, 0x01)){
 			if(!(tmpVal & 0x08)) {
@@ -924,34 +530,57 @@ signed char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned cha
 	}
 	
 	
-
-signed char PcdWrite(unsigned char addr,unsigned char *pData)
+signed char pcd_read(unsigned char addr,unsigned char *pData)
 {
     char status;
-    unsigned int  unLen;
+    unsigned char i,ucComMF522Buf[MAXRLEN]; 
+
+    ucComMF522Buf[0] = PICC_READ;
+    ucComMF522Buf[1] = addr;
+	
+			
+    calulate_CRC(ucComMF522Buf,2,&ucComMF522Buf[2]);
+					
+    status = pcd_com_MF522(PCD_TRANSCEIVE,ucComMF522Buf,4,ucComMF522Buf,&i);
+					
+    if ((status == MI_OK) && (i == 0x90)){
+        for (i=0; i<16; i++){
+					*(pData+i) = ucComMF522Buf[i];
+				}
+    } else {
+			status = MI_ERR;
+		}
+    
+    return status;
+}
+
+               
+signed char pcd_write(unsigned char addr,unsigned char *pData)
+{
+    char status;
     unsigned char i,ucComMF522Buf[MAXRLEN]; 
     
     ucComMF522Buf[0] = PICC_WRITE;
     ucComMF522Buf[1] = addr;
-    calulateCRC(ucComMF522Buf,2,&ucComMF522Buf[2]);
+    calulate_CRC(ucComMF522Buf,2,&ucComMF522Buf[2]);
  
-    //status = PcdComMF522(PCD_TRANSCEIVE,ucComMF522Buf,4,ucComMF522Buf,&unLen);
+    status = pcd_com_MF522(PCD_TRANSCEIVE,ucComMF522Buf,4,ucComMF522Buf,&i);
 
-    if ((status != MI_OK) || (unLen != 4) || ((ucComMF522Buf[0] & 0x0F) != 0x0A))
-    {   status = MI_ERR;   }
+    if ((status != MI_OK) || (i != 4) || ((ucComMF522Buf[0] & 0x0F) != 0x0A)){
+			status = MI_ERR;
+		}
         
-    if (status == MI_OK)
-    {
-        for (i=0; i<16; i++) { 
-					ucComMF522Buf[i] = *(pData+i);
+    if (status == MI_OK){
+        for (i=0; i<16; i++){
+						ucComMF522Buf[i] = *(pData+i);
 				}
-				
-				calulateCRC(ucComMF522Buf,16,&ucComMF522Buf[16]);
+        calulate_CRC(ucComMF522Buf,16,&ucComMF522Buf[16]);
 
-        //status = PcdComMF522(PCD_TRANSCEIVE,ucComMF522Buf,18,ucComMF522Buf,&unLen);
-        if ((status != MI_OK) || (unLen != 4) || ((ucComMF522Buf[0] & 0x0F) != 0x0A))
-        {   status = MI_ERR;   }
-    }
+        status = pcd_com_MF522(PCD_TRANSCEIVE,ucComMF522Buf,18,ucComMF522Buf,&i);
+        if ((status != MI_OK) || (i != 4) || ((ucComMF522Buf[0] & 0x0F) != 0x0A)){
+					status = MI_ERR;
+				}
+		}
     
     return status;
 }

@@ -8,10 +8,12 @@
 #include "mfrc522.h"
 
 //sbit testing_bit = P0^3;
-unsigned char code authentKeyA[2][6]={{0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
+unsigned char code gAuthentKeyA[2][6]={{0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
 	{0xff, 0xff, 0xff, 0xff, 0xff, 0xff}};
 	
-unsigned char gI2CBuffer[8]={0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72};
+unsigned char code gTestWriteData[16] = {0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff,0x88};
+	
+unsigned char gI2CBuffer[16]={0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72};
 
 void main(void)
 {
@@ -37,27 +39,66 @@ void main(void)
 		UART_send_str(NR_UART0, "testing serial\n");//send a string
 		}
 		
-	pcdReset();
+	pcd_reset();
 	while (1){
 	
-	if(pcdRequest(gI2CBuffer, &i) == MI_OK){
+	if(pcd_request(gI2CBuffer, &i) == MI_OK){
 		while(gTXReady[NR_UART0]==0){;};
 		UART_send_str(NR_UART0, "RQSOK\n");
+	} else {
+		while(gTXReady[NR_UART0]==0){;};
+		UART_send_str(NR_UART0, "RQERR\n");
+		continue ;
 	}
 		
-	pcdAnticoll(gI2CBuffer);
+		if(pcd_anti_coll(gI2CBuffer) == MI_ERR){
+		while(gTXReady[NR_UART0]==0){;};
+		UART_send_str(NR_UART0, "AtCollErr\n");
+		continue ; 
+	} else {
+		while(gTXReady[NR_UART0]==0){;};
+		UART_send_str(NR_UART0, "AtCollOK\n"); 
+	}
 		
-	while(gTXReady[NR_UART0]==0){;};
-	UART_send_array(NR_UART0, gI2CBuffer, 6);
+//	while(gTXReady[NR_UART0]==0){;};
+//	UART_send_array(NR_UART0, gI2CBuffer, 6);
 
-	if(pcdSelect(gI2CBuffer) == MI_OK){
+	if(pcd_select(gI2CBuffer) == MI_OK){
 		while(gTXReady[NR_UART0]==0){;};
 		UART_send_str(NR_UART0, "SlectOK\n");
+			
+	} else {
+		continue ;
 	}
 	
-	if( PcdAuthState(PICC_AUTHENT1A, 1, authentKeyA[0], gI2CBuffer)== MI_OK){
+	if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[0], gI2CBuffer)== MI_OK){
 		while(gTXReady[NR_UART0]==0){;};
 		UART_send_str(NR_UART0, "AuthenOK\n");
+			
+		
+		if(pcd_write(1, gTestWriteData) == MI_OK){
+			while(gTXReady[NR_UART0]==0){;};
+			UART_send_str(NR_UART0, "wrOK\n");
+				if(pcd_read(1,gI2CBuffer) == MI_OK){
+					while(gTXReady[NR_UART0]==0){;};
+					UART_send_str(NR_UART0, "RDBok\n");
+					while(gTXReady[NR_UART0]==0){;};
+					UART_send_array(NR_UART0, gI2CBuffer, 16);
+					while(gTXReady[NR_UART0]==0){;};
+					break;
+				} else {
+					while(gTXReady[NR_UART0]==0){;};
+					UART_send_str(NR_UART0, "rdErr\n");
+					break;
+				}
+					
+		} else {
+			while(gTXReady[NR_UART0]==0){;};
+			UART_send_str(NR_UART0, "wrErr,end\n");
+			break;
+		}
+	} else {
+		continue ;
 	}
 
 		

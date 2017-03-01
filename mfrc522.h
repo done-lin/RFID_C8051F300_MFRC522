@@ -9,32 +9,31 @@
 /////////////////////////////////////////////////////////////////////
 //º¯ÊýÔ­ÐÍ
 /////////////////////////////////////////////////////////////////////
-extern signed char pcdReset(void);
-extern signed char pcdAuthent(void);
-extern void pcdAntennaOn(void);
-extern void pcdAntennaOff(void);
-extern signed char pcdRequest(unsigned char *pOutData, unsigned char *pOutLenBit);   
-extern signed char pcdAnticoll(unsigned char *pSnr);
-extern signed char pcdSelect(unsigned char *pSnr);         
-extern signed char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);     
-extern char pcdRead(unsigned char addr,unsigned char *pData);     
-extern signed char pcdWrite(unsigned char addr,unsigned char *pData);    
-extern char pcdValue(unsigned char dd_mode,unsigned char addr,unsigned char *pValue);   
-extern char pcdBakValue(unsigned char sourceaddr, unsigned char goaladdr);                                 
-extern char pcdHalt(void);
-extern signed char pcdComMF522(unsigned char Command, 
+extern signed char pcd_reset(void);
+//extern signed char pcdAuthent(void);
+//extern void pcdAntennaOn(void);
+//extern void pcdAntennaOff(void);
+extern signed char pcd_request(unsigned char *pOutData, unsigned char *pOutLenBit);   
+extern signed char pcd_anti_coll(unsigned char *pSnr);
+extern signed char pcd_select(unsigned char *pSnr);         
+extern signed char pcd_auth_state(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);     
+extern signed char pcd_read(unsigned char addr,unsigned char *pData);    
+extern signed char pcd_write(unsigned char addr,unsigned char *pData);   
+//extern char pcdValue(unsigned char dd_mode,unsigned char addr,unsigned char *pValue);   
+//extern char pcdBakValue(unsigned char sourceaddr, unsigned char goaladdr);                                 
+//extern char pcdHalt(void);
+extern signed char pcd_com_MF522(unsigned char Command, 
                  unsigned char *pInData, 
                  unsigned char InLenByte,
                  unsigned char *pOutData, 
                  unsigned char  *pOutLenBit);
-extern void calulateCRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutData);
-extern void writeRawRc(unsigned char Address,unsigned char value);
-extern unsigned char readRawRc(unsigned char Address); 
-extern void setBitMask(unsigned char reg,unsigned char mask); 
-extern void clearBitMask(unsigned char reg,unsigned char mask); 
-extern char m500PcdConfigISOType(unsigned char type);
-extern void delay10Ms(unsigned char _10ms);
-extern void waitCardOff(void);
+extern void calulate_CRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutData);
+//extern void writeRawRc(unsigned char Address,unsigned char value);
+//extern unsigned char readRawRc(unsigned char Address); 
+//extern void setBitMask(unsigned char reg,unsigned char mask); 
+//extern void clearBitMask(unsigned char reg,unsigned char mask); 
+//extern char m500PcdConfigISOType(unsigned char type);
+
 /////////////////////////////////////////////////////////////////////
 //MF522ÃüÁî×Ö
 /////////////////////////////////////////////////////////////////////
