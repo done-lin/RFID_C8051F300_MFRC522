@@ -250,7 +250,7 @@ signed char pcd_reset(void)
 		unsigned char tmpVal;
 		tmpVal = PCD_RESETPHASE;
 		if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
-			UART_send_str(NR_UART0, "step1\n");
+			//UART_send_str(NR_UART0, "step1\n");
 		}
 		I2C_write_str(SLA_ADDR,CommandReg, &tmpVal, 0x01);
     _nop_();_nop_();_nop_();_nop_();
@@ -258,7 +258,7 @@ signed char pcd_reset(void)
 		_nop_();_nop_();_nop_();_nop_();
     
 		if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
-			UART_send_str(NR_UART0, "step2\n");
+			//UART_send_str(NR_UART0, "step2\n");
 		}
 		tmpVal = 0x3d;
     if(I2C_write_str(SLA_ADDR, ModeReg, &tmpVal, 0x01)) {           //和Mifare卡通讯，CRC初始值0x6363
@@ -269,7 +269,7 @@ signed char pcd_reset(void)
 		}
 		
 		if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) { 
-			UART_send_str(NR_UART0, "step3\n");
+			//UART_send_str(NR_UART0, "step3\n");
 		}
 		tmpVal = 0x86;
 		if(I2C_write_str(SLA_ADDR, RxSelReg, &tmpVal, 0x01)) {
@@ -288,7 +288,7 @@ signed char pcd_reset(void)
 		}
 
 		if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) { 
-			UART_send_str(NR_UART0, "step4\n");	
+			//UART_send_str(NR_UART0, "step4\n");	
 		}
 		tmpVal = 0;	
     if(I2C_write_str(SLA_ADDR, TReloadRegH, &tmpVal, 0x01)) {
@@ -326,7 +326,7 @@ signed char pcd_reset(void)
 		}
 		
 		if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
-			UART_send_str(NR_UART0, "step5\n");
+			//UART_send_str(NR_UART0, "step5\n");
 		}
 		if(I2C_read_str(SLA_ADDR, TxControlReg, &tmpVal, 0x01)){ //turn off the antenna and turn it on again
 			
