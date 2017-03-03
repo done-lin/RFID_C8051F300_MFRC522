@@ -554,7 +554,7 @@ signed char pcd_read(unsigned char addr,unsigned char *pData)
     return status;
 }
 
-               
+         
 signed char pcd_write(unsigned char addr,unsigned char *pData)
 {
     char status;
@@ -585,4 +585,47 @@ signed char pcd_write(unsigned char addr,unsigned char *pData)
     return status;
 }
 
+
+#ifdef DEF_SET_AUTH_KEYA 
+signed char pcd_set_keyA(unsigned char addr,unsigned char *pData)
+{
+    char status;
+    unsigned char i,ucComMF522Buf[MAXRLEN]; 
 	
+    if(addr%4 != 3){
+			return MI_ERR;
+		}
+		
+			
+    ucComMF522Buf[0] = PICC_WRITE;
+    ucComMF522Buf[1] = addr;
+    calulate_CRC(ucComMF522Buf,2,&ucComMF522Buf[2]);
+ 
+    status = pcd_com_MF522(PCD_TRANSCEIVE,ucComMF522Buf,4,ucComMF522Buf,&i);
+
+    if ((status != MI_OK) || (i != 4) || ((ucComMF522Buf[0] & 0x0F) != 0x0A)){
+			status = MI_ERR;
+		}
+        
+    if (status == MI_OK){
+        for (i=0; i<6; i++){
+						ucComMF522Buf[i] = *(pData+i);
+				}
+				
+				ucComMF522Buf[6] = 0xff; ucComMF522Buf[7] = 0x07; ucComMF522Buf[8] = 0x80; ucComMF522Buf[9] = *pData;
+				
+				for (i=10; i<16; i++){
+						ucComMF522Buf[i] = 0x00;
+				}
+				
+        calulate_CRC(ucComMF522Buf,16,&ucComMF522Buf[16]);
+
+        status = pcd_com_MF522(PCD_TRANSCEIVE,ucComMF522Buf,18,ucComMF522Buf,&i);
+        if ((status != MI_OK) || (i != 4) || ((ucComMF522Buf[0] & 0x0F) != 0x0A)){
+					status = MI_ERR;
+				}
+		}
+    
+    return status;
+}
+#endif
