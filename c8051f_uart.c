@@ -5,7 +5,7 @@
 //-----------------------------------------------------------------------------
 // Global Variables
 //-----------------------------------------------------------------------------
-sbit LEDControlIO = P0^3;
+
 
 unsigned char gUARTTxBuffer[UART_QTY][UART_BUFFERSIZE];
 unsigned char gUARTRxBuffer[UART_QTY][14];
@@ -16,20 +16,20 @@ unsigned char gTXReady[UART_QTY] =1;
 unsigned char gUartRecStatusFlag = 0x00;
 char data gByte[UART_QTY];//the SBUF byte, it tells what byte you are handling
 unsigned char gCardSn[5]={0x00,0x00,0x00,0x00};
+unsigned char xorForSendData5A;
 const PUNCTURE_INFO code myPunctureInfo={
-	0x55,//checksum_2
-	86,//manufactureSN
+	0x55,//checksum_2£¬1
+	0x56,//86,manufactureSN£¬3
 	1,//country, China is one
 	80,//model, 80 is 18g
-	86+1+80,//checksum3
-	30,//intervalTime;//12,in minutes
+	86+1+80,//checksum_3,86+1+80=0xa7
+	30,//0x1e, intervalTime;//12,in minutes
 	0x00,//reserved_1;//13
-	240,//serviceTime;//14,in minutes
-	0,//lastServiceTime;//18
-	0xff,//reserved_2;//19
+	240,//0xf0,serviceTime;//14,in minutes
+	1488543315,//58B95E53, lastServiceTime;//18
+	0x00,//reserved_2;//19
 	0xaa//manufactureChecksum;//20
 };
-
 
 #define Lin_Debug
 void UART_send_str(unsigned char UartNr, unsigned char *ucString)
@@ -47,6 +47,7 @@ void UART_send_str(unsigned char UartNr, unsigned char *ucString)
 	gUARTOutputFirst[UartNr] = 0;
 	gByte[UartNr] = 0;
 	gTXReady[UartNr] = 0;
+	RS485TxEnIO = 1;
 	TI0 = 1; //start to send uart string
 #else
 	;
@@ -66,6 +67,7 @@ void UART_send_array(unsigned char UartNr, unsigned char *ucData, unsigned char 
 	gUARTOutputFirst[UartNr] = 0;
 	gByte[UartNr]=0;
 	gTXReady[UartNr] = 0;
+	RS485TxEnIO = 1;
 	TI0 = 1; //start to send uart string	
 }
 
@@ -157,12 +159,15 @@ void UART0_Interrupt(void) interrupt 4
 								gUARTTxBuffer[NR_UART0][18] = myPunctureInfo.lastServiceTime>>24;
 								gUARTTxBuffer[NR_UART0][19] = myPunctureInfo.reserved_2;
 								gUARTTxBuffer[NR_UART0][20] = myPunctureInfo.manufactureChecksum;
-								gUARTTxBuffer[NR_UART0][21] = myPunctureInfo.manufactureChecksum;
+								gUARTTxBuffer[NR_UART0][21] = xorForSendData5A;
+
 								gUARTBufferSize[NR_UART0] = 22;
 								gUARTOutputFirst[NR_UART0] = 0;
 								gUARTInputFirst[NR_UART0] = 0;
 								gTXReady[NR_UART0] = 0;
 								TI0 = 1;
+								
+								
 							break;
 						case 0xC3:
 								gUartRecStatusFlag=0xc3;
@@ -180,6 +185,8 @@ void UART0_Interrupt(void) interrupt 4
 								gUARTBufferSize[NR_UART0]++;
 							break;
 						default:
+							gUARTInputFirst[NR_UART0]=0;
+							gUARTBufferSize[NR_UART0]=0;
 							break;
         }
         
@@ -224,6 +231,7 @@ void UART0_Interrupt(void) interrupt 4
             gUARTOutputFirst[NR_UART0]++;            // Update counter
             gUARTBufferSize[NR_UART0]--;             // Decrease array size
         } else {
+				 RS485TxEnIO = 0;
          gTXReady[NR_UART0] = 1;                    // Indicate transmission complete
         }
     }

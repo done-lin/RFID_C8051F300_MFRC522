@@ -18,7 +18,7 @@ typedef struct PunctureInfo
 	unsigned char   serviceTime;//9,in minutes
 	unsigned long lastServiceTime;//13
 	unsigned char  reserved_2;//14
-	unsigned char  manufactureChecksum;//15
+	unsigned char  manufactureChecksum;//15,
 }PUNCTURE_INFO, *PUNCTURE_INFO_P;
 
 extern void UART_send_str(unsigned char UartNr, unsigned char *ucString);
@@ -35,5 +35,10 @@ extern unsigned char gTXReady[UART_QTY];
 extern char data gByte[UART_QTY];//the SBUF byte, it tells what byte you are handling
 extern unsigned char gCardSn[5];
 extern unsigned char gUartRecStatusFlag;
+extern unsigned char xorForSendData5A;
 extern const PUNCTURE_INFO code myPunctureInfo;
+sbit LEDControlIO = P0^0;
+sbit RS485TxEnIO = P0^1;
+
+
 #endif

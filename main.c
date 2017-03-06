@@ -46,15 +46,20 @@ void main(void)
 	c8051f_port_init();                        // Initialize Port I/O
 	UART0_init();
 	EA = 1;
+	
+	//----- puntrueInit ---------//
+	xorForSendData5A=0x00;
+	RS485TxEnIO = 0;
+	LEDControlIO = 1;
 
-
+	//---- puntrueInit ----------//
 
 	if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
-		UART_send_str(NR_UART0, "c8051f Start\n");//send a string
+		UART_send_str(NR_UART0, "PuntrueGuid Start\n");//send a string
 		}
 		
-	while(gTXReady[NR_UART0]==0){;};
-	UART_send_str(NR_UART0, "testingUART\n");//send a string
+//	while(gTXReady[NR_UART0]==0){;};
+//	UART_send_str(NR_UART0, "testingUART\n");//send a string
 
 		
 	pcd_reset();
@@ -83,6 +88,11 @@ void main(void)
 		}
 	}                                   // End of while(1)
 	
+	for(i=0; i<4; i++){
+		gCardSn[i] = gI2CBuffer[i];
+	}
+	
+	/////////////////////
 	
 #ifdef DEF_SET_AUTH_KEYA 
 	if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[0], gI2CBuffer)== MI_OK ){
@@ -97,6 +107,36 @@ void main(void)
 		while(gTXReady[NR_UART0]==0){;};
 		UART_send_str(NR_UART0, "AuthenOK\n");
 			
+			
+			
+/////////////////////
+	
+	gUARTTxBuffer[NR_UART0][0] = 0x5a;
+	gUARTTxBuffer[NR_UART0][1] = gCardSn[0];
+	gUARTTxBuffer[NR_UART0][2] = gCardSn[1];
+	gUARTTxBuffer[NR_UART0][3] = gCardSn[2];
+	gUARTTxBuffer[NR_UART0][4] = gCardSn[3];
+	gUARTTxBuffer[NR_UART0][5] = (gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);
+	gUARTTxBuffer[NR_UART0][6] = myPunctureInfo.checksum_2;
+	gUARTTxBuffer[NR_UART0][7] = myPunctureInfo.manufactureSN;
+	gUARTTxBuffer[NR_UART0][8] = myPunctureInfo.manufactureSN>>8;
+	gUARTTxBuffer[NR_UART0][9] = myPunctureInfo.country;
+	gUARTTxBuffer[NR_UART0][10] = myPunctureInfo.model;
+	gUARTTxBuffer[NR_UART0][11] = myPunctureInfo.checksum_3;
+	gUARTTxBuffer[NR_UART0][12] = myPunctureInfo.intervalTime;
+	gUARTTxBuffer[NR_UART0][13] = myPunctureInfo.reserved_1;
+	gUARTTxBuffer[NR_UART0][14] = myPunctureInfo.serviceTime;
+	gUARTTxBuffer[NR_UART0][15] = myPunctureInfo.lastServiceTime;
+	gUARTTxBuffer[NR_UART0][16] = myPunctureInfo.lastServiceTime>>8;
+	gUARTTxBuffer[NR_UART0][17] = myPunctureInfo.lastServiceTime>>16;
+	gUARTTxBuffer[NR_UART0][18] = myPunctureInfo.lastServiceTime>>24;
+	gUARTTxBuffer[NR_UART0][19] = myPunctureInfo.reserved_2;
+	gUARTTxBuffer[NR_UART0][20] = myPunctureInfo.manufactureChecksum;
+				
+		for(i=0; i<21; i++){
+			xorForSendData5A ^= gUARTTxBuffer[NR_UART0][i];
+		}
+////////////////////
 		
 		if(pcd_write(1, &myPunctureInfo.checksum_2) == MI_OK){
 			while(gTXReady[NR_UART0]==0){;};
@@ -108,7 +148,6 @@ void main(void)
 				} else {
 					while(gTXReady[NR_UART0]==0){;};
 					UART_send_str(NR_UART0, "rdErr\n");
-
 				}
 					
 		} else {
