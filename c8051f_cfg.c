@@ -13,9 +13,9 @@ void c8051f_oscillator_init(void)
 
 void c8051f_port_init(void)
 {
-	P0MDIN |= 0x0C;                     // P0.2 and P03. are digital
+	P0MDIN |= 0x0f;                     // P0.2 and P03. are digital
 
-	P0MDOUT = 0x00;                     // P0.3 and P0.2 all is push-pull
+	P0MDOUT = 0x03;                     // P0.3 and P0.2 all is push-pull
 	P0MDOUT |= 0x10;                    // set UART TX to push-pull output
 	
 	XBR1    = 0x03;                     // Enable UTX, URX as push-pull output

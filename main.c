@@ -110,28 +110,27 @@ void main(void)
 			
 			
 /////////////////////
-	
-	gUARTTxBuffer[NR_UART0][0] = 0x5a;
-	gUARTTxBuffer[NR_UART0][1] = gCardSn[0];
-	gUARTTxBuffer[NR_UART0][2] = gCardSn[1];
-	gUARTTxBuffer[NR_UART0][3] = gCardSn[2];
-	gUARTTxBuffer[NR_UART0][4] = gCardSn[3];
-	gUARTTxBuffer[NR_UART0][5] = (gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);
-	gUARTTxBuffer[NR_UART0][6] = myPunctureInfo.checksum_2;
-	gUARTTxBuffer[NR_UART0][7] = myPunctureInfo.manufactureSN;
-	gUARTTxBuffer[NR_UART0][8] = myPunctureInfo.manufactureSN>>8;
-	gUARTTxBuffer[NR_UART0][9] = myPunctureInfo.country;
-	gUARTTxBuffer[NR_UART0][10] = myPunctureInfo.model;
-	gUARTTxBuffer[NR_UART0][11] = myPunctureInfo.checksum_3;
-	gUARTTxBuffer[NR_UART0][12] = myPunctureInfo.intervalTime;
-	gUARTTxBuffer[NR_UART0][13] = myPunctureInfo.reserved_1;
-	gUARTTxBuffer[NR_UART0][14] = myPunctureInfo.serviceTime;
-	gUARTTxBuffer[NR_UART0][15] = myPunctureInfo.lastServiceTime;
-	gUARTTxBuffer[NR_UART0][16] = myPunctureInfo.lastServiceTime>>8;
-	gUARTTxBuffer[NR_UART0][17] = myPunctureInfo.lastServiceTime>>16;
-	gUARTTxBuffer[NR_UART0][18] = myPunctureInfo.lastServiceTime>>24;
-	gUARTTxBuffer[NR_UART0][19] = myPunctureInfo.reserved_2;
-	gUARTTxBuffer[NR_UART0][20] = myPunctureInfo.manufactureChecksum;
+		gUARTTxBuffer[NR_UART0][0] = 0x5a;
+		gUARTTxBuffer[NR_UART0][1] = gCardSn[0];
+		gUARTTxBuffer[NR_UART0][2] = gCardSn[1];
+		gUARTTxBuffer[NR_UART0][3] = gCardSn[2];
+		gUARTTxBuffer[NR_UART0][4] = gCardSn[3];
+		gUARTTxBuffer[NR_UART0][5] = (gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);
+		gUARTTxBuffer[NR_UART0][6] = myPunctureInfo.checksum_2;
+		gUARTTxBuffer[NR_UART0][7] = myPunctureInfo.manufactureSN;
+		gUARTTxBuffer[NR_UART0][8] = myPunctureInfo.manufactureSN>>8;
+		gUARTTxBuffer[NR_UART0][9] = myPunctureInfo.country;
+		gUARTTxBuffer[NR_UART0][10] = myPunctureInfo.model;
+		gUARTTxBuffer[NR_UART0][11] = myPunctureInfo.checksum_3;
+		gUARTTxBuffer[NR_UART0][12] = myPunctureInfo.intervalTime;
+		gUARTTxBuffer[NR_UART0][13] = myPunctureInfo.reserved_1;
+		gUARTTxBuffer[NR_UART0][14] = myPunctureInfo.serviceTime;
+		gUARTTxBuffer[NR_UART0][15] = myPunctureInfo.lastServiceTime;
+		gUARTTxBuffer[NR_UART0][16] = myPunctureInfo.lastServiceTime>>8;
+		gUARTTxBuffer[NR_UART0][17] = myPunctureInfo.lastServiceTime>>16;
+		gUARTTxBuffer[NR_UART0][18] = myPunctureInfo.lastServiceTime>>24;
+		gUARTTxBuffer[NR_UART0][19] = myPunctureInfo.reserved_2;
+		gUARTTxBuffer[NR_UART0][20] = myPunctureInfo.manufactureChecksum;
 				
 		for(i=0; i<21; i++){
 			xorForSendData5A ^= gUARTTxBuffer[NR_UART0][i];

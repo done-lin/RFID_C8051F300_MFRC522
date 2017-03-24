@@ -137,6 +137,7 @@ void UART0_Interrupt(void) interrupt 4
 						switch(SBUF0)
 						{
 						case 0xA5:
+							if(gCardSn[0]!= 0 || gCardSn[1]!= 0 || gCardSn[2]!= 0){
 								gUARTRxBuffer[NR_UART0][0] = gByte[NR_UART0];
 								gUARTTxBuffer[NR_UART0][0] = 0x5a;
 								gUARTTxBuffer[NR_UART0][1] = gCardSn[0];
@@ -165,8 +166,39 @@ void UART0_Interrupt(void) interrupt 4
 								gUARTOutputFirst[NR_UART0] = 0;
 								gUARTInputFirst[NR_UART0] = 0;
 								gTXReady[NR_UART0] = 0;
+								RS485TxEnIO = 1;
 								TI0 = 1;
-								
+							} else {
+								gUARTTxBuffer[NR_UART0][0] = 0x5a;
+								gUARTTxBuffer[NR_UART0][1] = 0;
+								gUARTTxBuffer[NR_UART0][2] = 0;
+								gUARTTxBuffer[NR_UART0][3] = 0;
+								gUARTTxBuffer[NR_UART0][4] = 0;
+								gUARTTxBuffer[NR_UART0][5] = 0;
+								gUARTTxBuffer[NR_UART0][6] = 0;
+								gUARTTxBuffer[NR_UART0][7] = 0;
+								gUARTTxBuffer[NR_UART0][8] = 0;
+								gUARTTxBuffer[NR_UART0][9] = 0;
+								gUARTTxBuffer[NR_UART0][10] = 0;
+								gUARTTxBuffer[NR_UART0][11] = 0;
+								gUARTTxBuffer[NR_UART0][12] = 0;
+								gUARTTxBuffer[NR_UART0][13] = 0.;
+								gUARTTxBuffer[NR_UART0][14] = 0;
+								gUARTTxBuffer[NR_UART0][15] = 0;
+								gUARTTxBuffer[NR_UART0][16] = 0;
+								gUARTTxBuffer[NR_UART0][17] = 0;
+								gUARTTxBuffer[NR_UART0][18] = 0;
+								gUARTTxBuffer[NR_UART0][19] = 0;
+								gUARTTxBuffer[NR_UART0][20] = 0;
+								gUARTTxBuffer[NR_UART0][21] = 0x5a;
+
+								gUARTBufferSize[NR_UART0] = 22;
+								gUARTOutputFirst[NR_UART0] = 0;
+								gUARTInputFirst[NR_UART0] = 0;
+								gTXReady[NR_UART0] = 0;
+								RS485TxEnIO = 1;
+								TI0 = 1;
+							}
 								
 							break;
 						case 0xC3:
