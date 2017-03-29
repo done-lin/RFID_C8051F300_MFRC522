@@ -115,20 +115,20 @@ void main(void)
 		gUARTTxBuffer[NR_UART0][2] = gCardSn[1];
 		gUARTTxBuffer[NR_UART0][3] = gCardSn[2];
 		gUARTTxBuffer[NR_UART0][4] = gCardSn[3];//card id, High
-		gUARTTxBuffer[NR_UART0][5] = (gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);//checksum1; card id
+		gUARTTxBuffer[NR_UART0][5] = (unsigned char)(gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);//checksum1; card id
 		gUARTTxBuffer[NR_UART0][6] = myPunctureInfo.checksum_2;
-		gUARTTxBuffer[NR_UART0][7] = myPunctureInfo.manufactureSN;
-		gUARTTxBuffer[NR_UART0][8] = myPunctureInfo.manufactureSN>>8;
+		gUARTTxBuffer[NR_UART0][7] = (unsigned char)myPunctureInfo.manufactureSN;
+		gUARTTxBuffer[NR_UART0][8] = (unsigned char)(myPunctureInfo.manufactureSN>>8);
 		gUARTTxBuffer[NR_UART0][9] = myPunctureInfo.country;
 		gUARTTxBuffer[NR_UART0][10] = myPunctureInfo.model;
 		gUARTTxBuffer[NR_UART0][11] = myPunctureInfo.checksum_3;
 		gUARTTxBuffer[NR_UART0][12] = myPunctureInfo.intervalTime;
 		gUARTTxBuffer[NR_UART0][13] = myPunctureInfo.reserved_1;
 		gUARTTxBuffer[NR_UART0][14] = myPunctureInfo.serviceTime;
-		gUARTTxBuffer[NR_UART0][15] = myPunctureInfo.lastServiceTime;
-		gUARTTxBuffer[NR_UART0][16] = myPunctureInfo.lastServiceTime>>8;
-		gUARTTxBuffer[NR_UART0][17] = myPunctureInfo.lastServiceTime>>16;
-		gUARTTxBuffer[NR_UART0][18] = myPunctureInfo.lastServiceTime>>24;
+		gUARTTxBuffer[NR_UART0][15] = (unsigned char)myPunctureInfo.lastServiceTime;
+		gUARTTxBuffer[NR_UART0][16] = (unsigned char)(myPunctureInfo.lastServiceTime>>8);
+		gUARTTxBuffer[NR_UART0][17] = (unsigned char)(myPunctureInfo.lastServiceTime>>16);
+		gUARTTxBuffer[NR_UART0][18] = (unsigned char)(myPunctureInfo.lastServiceTime>>24);
 		gUARTTxBuffer[NR_UART0][19] = myPunctureInfo.reserved_2;
 		gUARTTxBuffer[NR_UART0][20] = myPunctureInfo.manufactureChecksum;
 				
@@ -137,16 +137,16 @@ void main(void)
 		}
 	
 		gI2CBuffer[0] = gUARTTxBuffer[NR_UART0][5];//checksum_1
-		gI2CBuffer[1] = myPunctureInfo.manufactureSN;
-		gI2CBuffer[2] = myPunctureInfo.manufactureSN>>8;
-		gI2CBuffer[3] = myPunctureInfo.country;
-		gI2CBuffer[4] = myPunctureInfo.model;
-		gI2CBuffer[5] = myPunctureInfo.intervalTime;
-		gI2CBuffer[6] = myPunctureInfo.serviceTime;
-		gI2CBuffer[7] = myPunctureInfo.lastServiceTime;
-		gI2CBuffer[8] = myPunctureInfo.lastServiceTime>>8;
-		gI2CBuffer[9] = myPunctureInfo.lastServiceTime>>16;
-		gI2CBuffer[10] = myPunctureInfo.lastServiceTime>>24;
+		gI2CBuffer[1] = gUARTTxBuffer[NR_UART0][7];
+		gI2CBuffer[2] = gUARTTxBuffer[NR_UART0][8];
+		gI2CBuffer[3] = gUARTTxBuffer[NR_UART0][9];
+		gI2CBuffer[4] = gUARTTxBuffer[NR_UART0][10];
+		gI2CBuffer[5] = gUARTTxBuffer[NR_UART0][12];
+		gI2CBuffer[6] = gUARTTxBuffer[NR_UART0][14];
+		gI2CBuffer[7] = gUARTTxBuffer[NR_UART0][15];
+		gI2CBuffer[8] = gUARTTxBuffer[NR_UART0][16];
+		gI2CBuffer[9] = gUARTTxBuffer[NR_UART0][17];
+		gI2CBuffer[10] = gUARTTxBuffer[NR_UART0][18];
 
 ////////////////////
 		
@@ -171,6 +171,7 @@ void main(void)
 		UART_send_str(NR_UART0, "AuthenEr\n");
 	}
 
+		gI2CBuffer[11] = 1;
 #endif
 	
 	while(1) {;};

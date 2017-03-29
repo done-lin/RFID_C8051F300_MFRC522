@@ -129,6 +129,7 @@ void UART0_init(void)
 //-----------------------------------------------------------------------------
 void UART0_Interrupt(void) interrupt 4
 {
+
     if (RI0 == 1){
 			RI0 = 0; 
 			gByte[NR_UART0] = SBUF0;
@@ -137,29 +138,29 @@ void UART0_Interrupt(void) interrupt 4
 						switch(SBUF0)
 						{
 						case 0xA5:
-							if(gCardSn[0]!= 0 || gCardSn[1]!= 0 || gCardSn[2]!= 0){
+							if(gCardSn[0]!= 0 || gCardSn[1]!= 0 || gCardSn[2]!= 0&& gI2CBuffer[11] == 0x01){// 
 								gUARTRxBuffer[NR_UART0][0] = gByte[NR_UART0];
 								gUARTTxBuffer[NR_UART0][0] = 0x5a;
 								gUARTTxBuffer[NR_UART0][1] = gCardSn[0];
 								gUARTTxBuffer[NR_UART0][2] = gCardSn[1];
 								gUARTTxBuffer[NR_UART0][3] = gCardSn[2];
 								gUARTTxBuffer[NR_UART0][4] = gCardSn[3];
-								gUARTTxBuffer[NR_UART0][5] = (gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);
-								gUARTTxBuffer[NR_UART0][6] = myPunctureInfo.checksum_2;
-								gUARTTxBuffer[NR_UART0][7] = myPunctureInfo.manufactureSN;
-								gUARTTxBuffer[NR_UART0][8] = myPunctureInfo.manufactureSN>>8;
-								gUARTTxBuffer[NR_UART0][9] = myPunctureInfo.country;
-								gUARTTxBuffer[NR_UART0][10] = myPunctureInfo.model;
-								gUARTTxBuffer[NR_UART0][11] = myPunctureInfo.checksum_3;
-								gUARTTxBuffer[NR_UART0][12] = myPunctureInfo.intervalTime;
-								gUARTTxBuffer[NR_UART0][13] = myPunctureInfo.reserved_1;
-								gUARTTxBuffer[NR_UART0][14] = myPunctureInfo.serviceTime;
-								gUARTTxBuffer[NR_UART0][15] = myPunctureInfo.lastServiceTime;
-								gUARTTxBuffer[NR_UART0][16] = myPunctureInfo.lastServiceTime>>8;
-								gUARTTxBuffer[NR_UART0][17] = myPunctureInfo.lastServiceTime>>16;
-								gUARTTxBuffer[NR_UART0][18] = myPunctureInfo.lastServiceTime>>24;
-								gUARTTxBuffer[NR_UART0][19] = myPunctureInfo.reserved_2;
-								gUARTTxBuffer[NR_UART0][20] = myPunctureInfo.manufactureChecksum;
+								gUARTTxBuffer[NR_UART0][5] = (unsigned char)(gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);
+								gUARTTxBuffer[NR_UART0][6] = 0x55; //checkum_2
+								gUARTTxBuffer[NR_UART0][7] = gI2CBuffer[1];//manufactureSN. LOW
+								gUARTTxBuffer[NR_UART0][8] = gI2CBuffer[2];//SN high 8;
+								gUARTTxBuffer[NR_UART0][9] = gI2CBuffer[3];//country
+								gUARTTxBuffer[NR_UART0][10] = gI2CBuffer[4];//model
+								gUARTTxBuffer[NR_UART0][11] = (unsigned char)(gI2CBuffer[1]+gI2CBuffer[2]+gI2CBuffer[3]+gI2CBuffer[4]);
+								gUARTTxBuffer[NR_UART0][12] = gI2CBuffer[5];//intervalTime;
+								gUARTTxBuffer[NR_UART0][13] = 0x00;//reserved_1;
+								gUARTTxBuffer[NR_UART0][14] = gI2CBuffer[6];//serviceTime;
+								gUARTTxBuffer[NR_UART0][15] = gI2CBuffer[7];//lastServiceTime;
+								gUARTTxBuffer[NR_UART0][16] = gI2CBuffer[8];//lastServiceTime>>8;
+								gUARTTxBuffer[NR_UART0][17] = gI2CBuffer[9];//lastServiceTime>>16;
+								gUARTTxBuffer[NR_UART0][18] = gI2CBuffer[10];//lastServiceTime>>24;
+								gUARTTxBuffer[NR_UART0][19] = 0x00;//reserved_2;
+								gUARTTxBuffer[NR_UART0][20] = 0xaa;//manufactureChecksum;
 								gUARTTxBuffer[NR_UART0][21] = xorForSendData5A;
 
 								gUARTBufferSize[NR_UART0] = 22;
@@ -182,7 +183,7 @@ void UART0_Interrupt(void) interrupt 4
 								gUARTTxBuffer[NR_UART0][10] = 0;
 								gUARTTxBuffer[NR_UART0][11] = 0;
 								gUARTTxBuffer[NR_UART0][12] = 0;
-								gUARTTxBuffer[NR_UART0][13] = 0.;
+								gUARTTxBuffer[NR_UART0][13] = 0;
 								gUARTTxBuffer[NR_UART0][14] = 0;
 								gUARTTxBuffer[NR_UART0][15] = 0;
 								gUARTTxBuffer[NR_UART0][16] = 0;
@@ -334,7 +335,7 @@ void UART0_Interrupt(void) interrupt 4
 							case 13://checksum
 								if(gByte[NR_UART0] != (gCardSn[0]^gCardSn[1]^gCardSn[2]^gCardSn[3]^gUARTTxBuffer[NR_UART0][13]^//reserve_2;
 									gUARTTxBuffer[NR_UART0][14]^gUARTTxBuffer[NR_UART0][15]^gUARTTxBuffer[NR_UART0][16]^gUARTTxBuffer[NR_UART0][17]^//lastServiceTime;
-									gUARTTxBuffer[NR_UART0][18]^0x00^0xAA))//0x00 is reserve_2; 0xaa is manufactureSN;
+									gUARTTxBuffer[NR_UART0][18]^0x00^0xAA) && gI2CBuffer[11] == 0x01)//0x00 is reserve_2; 0xaa is manufactureSN;
 								{
 									gUARTInputFirst[NR_UART0]=0;
 									gUARTBufferSize[NR_UART0]=0;
@@ -380,6 +381,7 @@ void UART0_Interrupt(void) interrupt 4
          gTXReady[NR_UART0] = 1;                    // Indicate transmission complete
         }
     }
+
 }
 
 
