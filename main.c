@@ -15,7 +15,7 @@ const unsigned char code gAuthentKeyA[2][6]={{0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 	
 const unsigned char code gTestWriteData[16] = {0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff,0x88};
 	
-unsigned char gI2CBuffer[16]={0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72,0x72};
+unsigned char gI2CBuffer[16];
 
 
 const unsigned char code gNewKeyA[16][6]={
@@ -111,11 +111,11 @@ void main(void)
 			
 /////////////////////
 		gUARTTxBuffer[NR_UART0][0] = 0x5a;
-		gUARTTxBuffer[NR_UART0][1] = gCardSn[0];
+		gUARTTxBuffer[NR_UART0][1] = gCardSn[0];//card id, last byte. low
 		gUARTTxBuffer[NR_UART0][2] = gCardSn[1];
 		gUARTTxBuffer[NR_UART0][3] = gCardSn[2];
-		gUARTTxBuffer[NR_UART0][4] = gCardSn[3];
-		gUARTTxBuffer[NR_UART0][5] = (gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);
+		gUARTTxBuffer[NR_UART0][4] = gCardSn[3];//card id, High
+		gUARTTxBuffer[NR_UART0][5] = (gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);//checksum1; card id
 		gUARTTxBuffer[NR_UART0][6] = myPunctureInfo.checksum_2;
 		gUARTTxBuffer[NR_UART0][7] = myPunctureInfo.manufactureSN;
 		gUARTTxBuffer[NR_UART0][8] = myPunctureInfo.manufactureSN>>8;
@@ -135,6 +135,19 @@ void main(void)
 		for(i=0; i<21; i++){
 			xorForSendData5A ^= gUARTTxBuffer[NR_UART0][i];
 		}
+	
+		gI2CBuffer[0] = gUARTTxBuffer[NR_UART0][5];//checksum_1
+		gI2CBuffer[1] = myPunctureInfo.manufactureSN;
+		gI2CBuffer[2] = myPunctureInfo.manufactureSN>>8;
+		gI2CBuffer[3] = myPunctureInfo.country;
+		gI2CBuffer[4] = myPunctureInfo.model;
+		gI2CBuffer[5] = myPunctureInfo.intervalTime;
+		gI2CBuffer[6] = myPunctureInfo.serviceTime;
+		gI2CBuffer[7] = myPunctureInfo.lastServiceTime;
+		gI2CBuffer[8] = myPunctureInfo.lastServiceTime>>8;
+		gI2CBuffer[9] = myPunctureInfo.lastServiceTime>>16;
+		gI2CBuffer[10] = myPunctureInfo.lastServiceTime>>24;
+
 ////////////////////
 		
 		if(pcd_write(1, &myPunctureInfo.checksum_2) == MI_OK){
@@ -143,7 +156,7 @@ void main(void)
 				if(pcd_read(1,gI2CBuffer) == MI_OK){
 					
 					while(gTXReady[NR_UART0]==0){;};
-					UART_send_array(NR_UART0, gI2CBuffer, 16);
+					//UART_send_array(NR_UART0, gI2CBuffer, 16);
 				} else {
 					while(gTXReady[NR_UART0]==0){;};
 					UART_send_str(NR_UART0, "rdErr\n");

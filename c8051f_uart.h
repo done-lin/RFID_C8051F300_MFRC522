@@ -37,6 +37,7 @@ extern unsigned char gCardSn[5];
 extern unsigned char gUartRecStatusFlag;
 extern unsigned char xorForSendData5A;
 extern const PUNCTURE_INFO code myPunctureInfo;
+extern unsigned char gI2CBuffer[16];
 sbit LEDControlIO = P0^0;
 sbit RS485TxEnIO = P0^1;
 

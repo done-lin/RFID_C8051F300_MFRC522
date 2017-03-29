@@ -31,7 +31,7 @@ const PUNCTURE_INFO code myPunctureInfo={
 	0xaa//manufactureChecksum;//20
 };
 
-#define Lin_Debug
+//#define Lin_Debug
 void UART_send_str(unsigned char UartNr, unsigned char *ucString)
 {
 #ifdef Lin_Debug
@@ -231,8 +231,10 @@ void UART0_Interrupt(void) interrupt 4
 					if(gUartRecStatusFlag == 0x20){
 						if(gUARTInputFirst[NR_UART0]==2 && gByte[NR_UART0] == 0x00){
 							LEDControlIO=1;
+							gUartRecStatusFlag=0x00;
 						}else if(gUARTInputFirst[NR_UART0]==2 && gByte[NR_UART0] == 0x10){
 							LEDControlIO=0;
+							gUartRecStatusFlag=0x00;
 						}
 						gUARTInputFirst[NR_UART0]=0;
 						gUARTBufferSize[NR_UART0]=0;
@@ -240,11 +242,122 @@ void UART0_Interrupt(void) interrupt 4
 						if(gUARTInputFirst[NR_UART0]==14){
 							gUARTInputFirst[NR_UART0]=0;
 							gUARTBufferSize[NR_UART0]=0;
-      }
+							gUartRecStatusFlag=0x00;
+							}
 					}else if(gUartRecStatusFlag == 0xd4){
+						
+						switch(gUARTInputFirst[NR_UART0])
+						{
+							case 1:
+								if(gByte[NR_UART0] != gCardSn[0])
+								{
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+								}
+								break;
+							
+							case 2:
+								if(gByte[NR_UART0] != gCardSn[1])
+								{
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+								}
+								break;
+							
+							case 3:
+								if(gByte[NR_UART0] != gCardSn[2])
+								{
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+								}
+								break;
+							
+							case 4:
+								if(gByte[NR_UART0] != gCardSn[3])
+								{
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+								}
+								break;
+							
+							case 5://reserved_1;
+								
+								if(gByte[NR_UART0] != 0x00)
+								{
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+								}//// add for test
+								
+								break;
+							
+							case 6:
+								//update RFID service time;
+
+									
+								break;
+							//////////////////////////////////////////
+							case 7://update last service,in scond;
+								break;
+							
+							case 8:
+								break;
+							
+							case 9:
+								break;
+							
+							case 10:
+								break;
+							///////////////////////////////////////////
+							case 11:
+								if(gByte[NR_UART0] != 0x00)
+								{
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+								}
+								break;
+							
+							case 12:
+								if(gByte[NR_UART0] != 0xaa)
+								{
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+								}
+								break;
+							
+							case 13://checksum
+								if(gByte[NR_UART0] != (gCardSn[0]^gCardSn[1]^gCardSn[2]^gCardSn[3]^gUARTTxBuffer[NR_UART0][13]^//reserve_2;
+									gUARTTxBuffer[NR_UART0][14]^gUARTTxBuffer[NR_UART0][15]^gUARTTxBuffer[NR_UART0][16]^gUARTTxBuffer[NR_UART0][17]^//lastServiceTime;
+									gUARTTxBuffer[NR_UART0][18]^0x00^0xAA))//0x00 is reserve_2; 0xaa is manufactureSN;
+								{
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+								} 
+								else //update RFID, UPDATE service time and last service time;
+								{
+									 gI2CBuffer[6] = gUARTRxBuffer[NR_UART0][6];
+									 gI2CBuffer[7] = gUARTRxBuffer[NR_UART0][7];
+									 gI2CBuffer[8] = gUARTRxBuffer[NR_UART0][8];
+									 gI2CBuffer[9] = gUARTRxBuffer[NR_UART0][9];
+									 gI2CBuffer[10] = gUARTRxBuffer[NR_UART0][10];
+								}
+								
+								break;
+							
+							
+						}
+						
 						if(gUARTInputFirst[NR_UART0]==14){
 							gUARTInputFirst[NR_UART0]=0;
 							gUARTBufferSize[NR_UART0]=0;
+							gUartRecStatusFlag=0x00;
 						}
 					}
     }
