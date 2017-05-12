@@ -17,8 +17,8 @@ typedef struct PunctureInfo
 	unsigned char  reserved_1;//8
 	unsigned char   serviceTime;//9,in minutes
 	unsigned long lastServiceTime;//13
-	unsigned char  reserved_2;//14
-	unsigned char  manufactureChecksum;//15,
+	unsigned char  reserved_2;//14, 00H
+	unsigned char  manufactureChecksum;//15, AAH
 }PUNCTURE_INFO, *PUNCTURE_INFO_P;
 
 extern void UART_send_str(unsigned char UartNr, unsigned char *ucString);

@@ -52,70 +52,21 @@ void main(void)
 	RS485TxEnIO = 0;
 	LEDControlIO = 1;
 
-	//---- puntrueInit ----------//
-
-	if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
-		UART_send_str(NR_UART0, "PuntrueGuid Start\n");//send a string
-		}
-		
-//	while(gTXReady[NR_UART0]==0){;};
-//	UART_send_str(NR_UART0, "testingUART\n");//send a string
-
-		
-	pcd_reset();
-		
-	while (1)
-		{
-			if(pcd_request(gI2CBuffer, &i) == MI_OK){
-			} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "RQERR\n");
-			continue ;
-			}
-		
-		if(pcd_anti_coll(gI2CBuffer) == MI_ERR){
-		while(gTXReady[NR_UART0]==0){;};
-		UART_send_str(NR_UART0, "AtCollErr\n");
-		continue ; 
-		}
-
-	if(pcd_select(gI2CBuffer) == MI_OK){
-			break;
-		} else {
-		while(gTXReady[NR_UART0]==0){;};
-		UART_send_str(NR_UART0, "SelErr\n");
-		continue ;
-		}
-	}                                   // End of while(1)
 	
-	for(i=0; i<4; i++){
-		gCardSn[i] = gI2CBuffer[i];
-	}
+//---- puntrueInit ----------//
+//	if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
+//		UART_send_str(NR_UART0, "PuntrueGuid Start\n");//send a string
+//		}
 	
-	/////////////////////
 	
-#ifdef DEF_SET_AUTH_KEYA 
-	if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[0], gI2CBuffer)== MI_OK ){
-		pcd_set_keyA(3, gAuthentKeyA[0]);
-	} else {
-		while(gTXReady[NR_UART0]==0){;};
-		UART_send_str(NR_UART0, "AuthErr\n");
-	}
-#else	
 	
-	if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[0], gI2CBuffer)== MI_OK ){
-		while(gTXReady[NR_UART0]==0){;};
-		UART_send_str(NR_UART0, "AuthenOK\n");
-			
-			
-			
-/////////////////////
+///////////////////////////////////////////////////////////////////////////////
 		gUARTTxBuffer[NR_UART0][0] = 0x5a;
 		gUARTTxBuffer[NR_UART0][1] = gCardSn[0];//card id, last byte. low
 		gUARTTxBuffer[NR_UART0][2] = gCardSn[1];
 		gUARTTxBuffer[NR_UART0][3] = gCardSn[2];
 		gUARTTxBuffer[NR_UART0][4] = gCardSn[3];//card id, High
-		gUARTTxBuffer[NR_UART0][5] = (unsigned char)(gCardSn[0]+gCardSn[1]+gCardSn[2]+gCardSn[3]);//checksum1; card id
+		gUARTTxBuffer[NR_UART0][5] = 0;//checksum1; card id
 		gUARTTxBuffer[NR_UART0][6] = myPunctureInfo.checksum_2;
 		gUARTTxBuffer[NR_UART0][7] = (unsigned char)myPunctureInfo.manufactureSN;
 		gUARTTxBuffer[NR_UART0][8] = (unsigned char)(myPunctureInfo.manufactureSN>>8);
@@ -136,44 +87,99 @@ void main(void)
 			xorForSendData5A ^= gUARTTxBuffer[NR_UART0][i];
 		}
 	
-		gI2CBuffer[0] = gUARTTxBuffer[NR_UART0][5];//checksum_1
-		gI2CBuffer[1] = gUARTTxBuffer[NR_UART0][7];
-		gI2CBuffer[2] = gUARTTxBuffer[NR_UART0][8];
-		gI2CBuffer[3] = gUARTTxBuffer[NR_UART0][9];
-		gI2CBuffer[4] = gUARTTxBuffer[NR_UART0][10];
-		gI2CBuffer[5] = gUARTTxBuffer[NR_UART0][12];
-		gI2CBuffer[6] = gUARTTxBuffer[NR_UART0][14];
-		gI2CBuffer[7] = gUARTTxBuffer[NR_UART0][15];
-		gI2CBuffer[8] = gUARTTxBuffer[NR_UART0][16];
-		gI2CBuffer[9] = gUARTTxBuffer[NR_UART0][17];
-		gI2CBuffer[10] = gUARTTxBuffer[NR_UART0][18];
 
-////////////////////
-		
-		if(pcd_write(1, &myPunctureInfo.checksum_2) == MI_OK){
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "wrOK\n");
-				if(pcd_read(1,gI2CBuffer) == MI_OK){
-					
-					while(gTXReady[NR_UART0]==0){;};
-					//UART_send_array(NR_UART0, gI2CBuffer, 16);
-				} else {
-					while(gTXReady[NR_UART0]==0){;};
-					UART_send_str(NR_UART0, "rdErr\n");
-				}
-					
-		} else {
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "wrErrend\n");
-		}
-	} else {
-		while(gTXReady[NR_UART0]==0){;};
-		UART_send_str(NR_UART0, "AuthenEr\n");
-	}
+//		gI2CBuffer[0] = gUARTTxBuffer[NR_UART0][5];//checksum_1
+//		gI2CBuffer[1] = gUARTTxBuffer[NR_UART0][7];//manufactureSN low 8
+//		gI2CBuffer[2] = gUARTTxBuffer[NR_UART0][8];//manufactureSN high 8
+//		gI2CBuffer[3] = gUARTTxBuffer[NR_UART0][9];//country
+//		gI2CBuffer[4] = gUARTTxBuffer[NR_UART0][10];//model
+//		gI2CBuffer[5] = gUARTTxBuffer[NR_UART0][12];//intervalTime
+//		gI2CBuffer[6] = gUARTTxBuffer[NR_UART0][14];//serviceTime
+//		gI2CBuffer[7] = gUARTTxBuffer[NR_UART0][15];//lastServiceTime
+//		gI2CBuffer[8] = gUARTTxBuffer[NR_UART0][16];//lastServiceTime
+//		gI2CBuffer[9] = gUARTTxBuffer[NR_UART0][17];//lastServiceTime
+//		gI2CBuffer[10] = gUARTTxBuffer[NR_UART0][18];//lastServiceTime
+//	  gI2CBuffer[11] = 1;
 
-		gI2CBuffer[11] = 1;
-#endif
+///////////////////////////////////////////////////////////////////////////////
 	
-	while(1) {;};
+	while(1)
+	{
+		pcd_reset();
+
+LOOP1:		
+		while (1)
+			{
+				if(pcd_request(gI2CBuffer, &i) == MI_OK){
+				} else {
+				//while(gTXReady[NR_UART0]==0){;};
+				//UART_send_str(NR_UART0, "RQERR\n");
+				continue ;
+				}
+			
+			if(pcd_anti_coll(gI2CBuffer) == MI_ERR){
+			//while(gTXReady[NR_UART0]==0){;};
+			//UART_send_str(NR_UART0, "AtCollErr\n");
+			continue ; 
+			}
+
+		if(pcd_select(gI2CBuffer) == MI_OK){
+				break;
+			} else {
+			//while(gTXReady[NR_UART0]==0){;};
+			//UART_send_str(NR_UART0, "SelErr\n");
+			continue ;
+			}
+		}                                   // End of while(1)
+		
+		for(i=0; i<4; i++){//get card id
+			gCardSn[i] = gI2CBuffer[i];
+		}
+LOOP2:		
+		if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[0], gCardSn)== MI_OK ){
+			//while(gTXReady[NR_UART0]==0){;};
+			//UART_send_str(NR_UART0, "AuthenOK\n");
+			}else{
+				goto LOOP1;
+			}
+			
+		if( pcd_read(1, gI2CBuffer) != MI_OK )
+		{
+				if(pcd_read(1, gI2CBuffer) != MI_OK)
+				{
+					if(pcd_read(1, gI2CBuffer) != MI_OK){
+						gI2CBuffer[0] = 0; gI2CBuffer[1] = 0;
+						gI2CBuffer[2] = 0; gI2CBuffer[3] = 0;
+						gI2CBuffer[4] = 0; gI2CBuffer[5] = 0;
+						gI2CBuffer[6] = 0; gI2CBuffer[7] = 0;
+						gI2CBuffer[8] = 0; gI2CBuffer[9] = 0;
+						gI2CBuffer[10] = 0; gI2CBuffer[11] = 0;
+						goto LOOP2;
+					}
+			}
+		}
+		gI2CBuffer[11] = 1;
+		
+		if(gI2CBuffer[11] == 0){
+			if(pcd_write(1, gI2CBuffer) == MI_OK){
+			//while(gTXReady[NR_UART0]==0){;};
+			//UART_send_str(NR_UART0, "wrOK\n");
+				//if(pcd_read(1,gI2CBuffer) == MI_OK){
+					//while(gTXReady[NR_UART0]==0){;};
+					//UART_send_array(NR_UART0, gI2CBuffer, 16);
+				//} else {
+					//while(gTXReady[NR_UART0]==0){;};
+					//UART_send_str(NR_UART0, "rdErr\n");
+				//}
+		} else {
+			//while(gTXReady[NR_UART0]==0){;};
+			//UART_send_str(NR_UART0, "wrErrend\n");
+		}
+	}
+		goto LOOP2;
+			
+	}
+	/////////////////////
+	
 	
 }                                      
