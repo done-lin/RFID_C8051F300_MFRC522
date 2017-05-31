@@ -27,7 +27,7 @@ const PUNCTURE_INFO code myPunctureInfo={
 	0x55,//checksum_2£¬1
 	0x56,//86,manufactureSN£¬3
 	1,//country, China is one
-	PGF_MODEL_18G,//model, 80 is 18g
+	PGF_MODEL_SCAN,//model, 80 is 18g
 	86+1+80,//checksum_3,86+1+80=0xa7
 	30,//0x1e, intervalTime;//12,in minutes
 	0x00,//reserved_1;//13
