@@ -18,25 +18,6 @@ const unsigned char code gTestWriteData[16] = {0x11,0x22,0x33,0x44,0x55,0x66,0x7
 unsigned char gI2CBuffer[16];
 
 
-const unsigned char code gNewKeyA[16][6]={
-		{0x11,0x22,0x33,0x44,0x55,0x66},
-		{0x66,0x55,0x44,0x33,0x22,0x11},
-		{0x11,0x22,0x33,0x44,0x55,0x66},
-		{0x66,0x55,0x44,0x33,0x22,0x11},
-		{0x11,0x22,0x33,0x44,0x55,0x66},
-		{0x66,0x55,0x44,0x33,0x22,0x11},
-		{0x11,0x22,0x33,0x44,0x55,0x66},
-		{0x66,0x55,0x44,0x33,0x22,0x11},
-		{0x11,0x22,0x33,0x44,0x55,0x66},
-		{0x66,0x55,0x44,0x33,0x22,0x11},
-		{0x11,0x22,0x33,0x44,0x55,0x66},
-		{0x66,0x55,0x44,0x33,0x22,0x11},
-		{0x11,0x22,0x33,0x44,0x55,0x66},
-		{0x66,0x55,0x44,0x33,0x22,0x11},
-		{0x11,0x22,0x33,0x44,0x55,0x66},
-		{0x66,0x55,0x44,0x33,0x22,0x11}
-};
-
 void main(void)
 {
 	unsigned char i;
@@ -54,9 +35,9 @@ void main(void)
 
 	
 //---- puntrueInit ----------//
-//	if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
-//		UART_send_str(NR_UART0, "PuntrueGuid Start\n");//send a string
-//		}
+	if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
+		UART_send_str(NR_UART0, "PuntrueGuid Start\n\n");//send a string
+		}
 	
 	
 	
@@ -112,22 +93,22 @@ LOOP1:
 			{
 				if(pcd_request(gI2CBuffer, &i) == MI_OK){
 				} else {
-				//while(gTXReady[NR_UART0]==0){;};
-				//UART_send_str(NR_UART0, "RQERR\n");
+				while(gTXReady[NR_UART0]==0){;};
+				UART_send_str(NR_UART0, "RQERR\n");
 				continue ;
 				}
 			
 			if(pcd_anti_coll(gI2CBuffer) == MI_ERR){
-			//while(gTXReady[NR_UART0]==0){;};
-			//UART_send_str(NR_UART0, "AtCollErr\n");
+			while(gTXReady[NR_UART0]==0){;};
+			UART_send_str(NR_UART0, "AtColErr\n");
 			continue ; 
 			}
 
 		if(pcd_select(gI2CBuffer) == MI_OK){
 				break;
 			} else {
-			//while(gTXReady[NR_UART0]==0){;};
-			//UART_send_str(NR_UART0, "SelErr\n");
+			while(gTXReady[NR_UART0]==0){;};
+			UART_send_str(NR_UART0, "SelErr\n");
 			continue ;
 			}
 		}                                   // End of while(1)
@@ -135,14 +116,17 @@ LOOP1:
 		for(i=0; i<4; i++){//get card id
 			gCardSn[i] = gI2CBuffer[i];
 		}
-LOOP2:		
+		while(gTXReady[NR_UART0]==0){;};
+			UART_send_str(NR_UART0, "carIDok\n");
+			
 		if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[0], gCardSn)== MI_OK ){
-			//while(gTXReady[NR_UART0]==0){;};
-			//UART_send_str(NR_UART0, "AuthenOK\n");
+			while(gTXReady[NR_UART0]==0){;};
+			UART_send_str(NR_UART0, "AuthenOK\n");
 			}else{
 				goto LOOP1;
 			}
 			
+/***
 		if( pcd_read(1, gI2CBuffer) != MI_OK )
 		{
 				if(pcd_read(1, gI2CBuffer) != MI_OK)
@@ -159,24 +143,36 @@ LOOP2:
 			}
 		}
 		gI2CBuffer[11] = 1;
-		
-		if(gI2CBuffer[11] == 0){
+***/
+			
+		gI2CBuffer[0]= 0x00;
+		gI2CBuffer[1]= (unsigned char)(myPunctureInfo.manufactureSN>>8);
+		gI2CBuffer[2]= (unsigned char)(myPunctureInfo.manufactureSN>>8);
+		gI2CBuffer[3]= myPunctureInfo.country;
+		gI2CBuffer[4]= myPunctureInfo.model;
+		gI2CBuffer[5]= myPunctureInfo.intervalTime;
+		gI2CBuffer[6]= myPunctureInfo.serviceTime;
+		gI2CBuffer[7]= (unsigned char)myPunctureInfo.lastServiceTime;
+		gI2CBuffer[8]= (unsigned char)(myPunctureInfo.lastServiceTime>>8);
+		gI2CBuffer[9]= (unsigned char)(myPunctureInfo.lastServiceTime>>16);
+		gI2CBuffer[10]= (unsigned char)(myPunctureInfo.lastServiceTime>>24);
+
 			if(pcd_write(1, gI2CBuffer) == MI_OK){
-			//while(gTXReady[NR_UART0]==0){;};
-			//UART_send_str(NR_UART0, "wrOK\n");
-				//if(pcd_read(1,gI2CBuffer) == MI_OK){
-					//while(gTXReady[NR_UART0]==0){;};
-					//UART_send_array(NR_UART0, gI2CBuffer, 16);
-				//} else {
-					//while(gTXReady[NR_UART0]==0){;};
-					//UART_send_str(NR_UART0, "rdErr\n");
-				//}
+			while(gTXReady[NR_UART0]==0){;};
+			UART_send_str(NR_UART0, "wrOK\n");
+				if(pcd_read(1,gI2CBuffer) == MI_OK){
+					while(gTXReady[NR_UART0]==0){;};
+					UART_send_array(NR_UART0, "2RdOK\n", 16);
+				} else {
+					while(gTXReady[NR_UART0]==0){;};
+					UART_send_str(NR_UART0, "2RdErr\n");
+				}
 		} else {
-			//while(gTXReady[NR_UART0]==0){;};
-			//UART_send_str(NR_UART0, "wrErrend\n");
+			while(gTXReady[NR_UART0]==0){;};
+			UART_send_str(NR_UART0, "2wrErr\n");
 		}
-	}
-		goto LOOP2;
+
+
 			
 	}
 	/////////////////////
