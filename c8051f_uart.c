@@ -22,7 +22,7 @@ unsigned char gTXReady[UART_QTY] =1;
 unsigned char gUartRecStatusFlag = 0x00;
 char data gByte[UART_QTY];//the SBUF byte, it tells what byte you are handling
 unsigned char gCardSn[5]={0x00,0x00,0x00,0x00};
-unsigned char xorForSendData5A;
+//unsigned char xorForSendData5A;
 const PUNCTURE_INFO code myPunctureInfo={
 	0x55,//checksum_2£¬1
 	0x56,//86,manufactureSN£¬3
@@ -32,7 +32,7 @@ const PUNCTURE_INFO code myPunctureInfo={
 	30,//0x1e, intervalTime;//12,in minutes
 	0x00,//reserved_1;//13
 	240,//0xf0,serviceTime;//14,in minutes
-	1496300856,//58B95E53, lastServiceTime;//18
+	946648800,//58B95E53, lastServiceTime;//18
 	0x00,//reserved_2;//19
 	0xaa//manufactureChecksum;//20
 };
@@ -217,118 +217,76 @@ void UART0_Interrupt(void) interrupt 4
 						}
 						gUARTInputFirst[NR_UART0]=0;
 						gUARTBufferSize[NR_UART0]=0;
-					}else if(gUartRecStatusFlag == 0xc3){
+					}else if(gUartRecStatusFlag == 0xd4){
 						if(gUARTInputFirst[NR_UART0]==14){
 							gUARTInputFirst[NR_UART0]=0;
 							gUARTBufferSize[NR_UART0]=0;
 							gUartRecStatusFlag=0x00;
 							}
-					}else if(gUartRecStatusFlag == 0xd4){
+					}else if(gUartRecStatusFlag == 0xc3){
 						
-						switch(gUARTInputFirst[NR_UART0])//the secode bytes after 0xd4
+						switch(gUARTInputFirst[NR_UART0])//the secode bytes after 0xc3
 						{
-							case 1://the first bytes after 0xd4, should be card id
-								if(gByte[NR_UART0] != gCardSn[0])
-								{
-									gUARTInputFirst[NR_UART0]=0;
-									gUARTBufferSize[NR_UART0]=0;
-									gUartRecStatusFlag = 0x00;
-								}
+							case 1://the first bytes after 0xc3, should be card id
+								//SN, low 8
 								break;
 							
 							case 2:
-								if(gByte[NR_UART0] != gCardSn[1])
-								{
-									gUARTInputFirst[NR_UART0]=0;
-									gUARTBufferSize[NR_UART0]=0;
-									gUartRecStatusFlag = 0x00;
-								}
+								//SN, high 8
 								break;
 							
 							case 3:
-								if(gByte[NR_UART0] != gCardSn[2])
-								{
-									gUARTInputFirst[NR_UART0]=0;
-									gUARTBufferSize[NR_UART0]=0;
-									gUartRecStatusFlag = 0x00;
-								}
+								//country
 								break;
 							
 							case 4:
-								if(gByte[NR_UART0] != gCardSn[3])
-								{
-									gUARTInputFirst[NR_UART0]=0;
-									gUARTBufferSize[NR_UART0]=0;
-									gUartRecStatusFlag = 0x00;
-								}
+								//model
 								break;
 							
-							case 5://reserved_1;
-								
-								if(gByte[NR_UART0] != 0x00)
-								{
-									gUARTInputFirst[NR_UART0]=0;
-									gUARTBufferSize[NR_UART0]=0;
-									gUartRecStatusFlag = 0x00;
-								}//// add for test
+							case 5://intervalTime
 								
 								break;
 							
 							case 6:
 								//update RFID service time;
-
-									
 								break;
 							//////////////////////////////////////////
-							case 7://update last service,in scond;
+							case 7://update last service,in scond, low 8;
 								break;
 							
-							case 8://last_service_time1
+							case 8://last_service_time2
 								break;
 							
-							case 9://last_service_time2
+							case 9://last_service_time3
 								break;
 							
-							case 10://last_service_time2
+							case 10://last_service_time4, hight 8
 								break;
 							///////////////////////////////////////////
-							case 11://reserved_2
-								if(gByte[NR_UART0] != 0x00)
-								{
-									gUARTInputFirst[NR_UART0]=0;
-									gUARTBufferSize[NR_UART0]=0;
-									gUartRecStatusFlag = 0x00;
-								}
-								break;
 							
-							case 12://manufacture checksum;
-								if(gByte[NR_UART0] != 0xaa)
+							case 11://checksum
+								//if(gByte[NR_UART0] != (unsigned char)(gUARTRxBuffer[NR_UART0][1] + gUARTRxBuffer[NR_UART0][2] + gUARTRxBuffer[NR_UART0][3] +
+								//	gUARTRxBuffer[NR_UART0][4] + gUARTRxBuffer[NR_UART0][5] + gUARTRxBuffer[NR_UART0][6] + gUARTRxBuffer[NR_UART0][7] +
+								//gUARTRxBuffer[NR_UART0][8]+gUARTRxBuffer[NR_UART0][9]+gUARTRxBuffer[NR_UART0][10]))//0x00 is reserve_2; 0xaa is manufactureSN;
+								//{
+								//	gUARTInputFirst[NR_UART0]=0;
+								//	gUARTBufferSize[NR_UART0]=0;
+								//	gUartRecStatusFlag = 0x00;
+								//	return ;
+								//} 
+								//else //update RFID, UPDATE service time and last service time;
 								{
-									gUARTInputFirst[NR_UART0]=0;
-									gUARTBufferSize[NR_UART0]=0;
-									gUartRecStatusFlag = 0x00;
-								}
-								break;
-							
-							case 13://checksum
-								if(gByte[NR_UART0] != (gCardSn[0]^gCardSn[1]^gCardSn[2]^gCardSn[3]^gUARTTxBuffer[NR_UART0][13]^//reserve_2;
-									gUARTTxBuffer[NR_UART0][14]^gUARTTxBuffer[NR_UART0][15]^gUARTTxBuffer[NR_UART0][16]^gUARTTxBuffer[NR_UART0][17]^//lastServiceTime;
-									gUARTTxBuffer[NR_UART0][18]^0x00^0xAA))//0x00 is reserve_2; 0xaa is manufactureSN;
-								{
-									gUARTInputFirst[NR_UART0]=0;
-									gUARTBufferSize[NR_UART0]=0;
-									gUartRecStatusFlag = 0x00;
-									return ;
-								} 
-								else //update RFID, UPDATE service time and last service time;
-								{
-									
+									 gI2CBuffer[1] = gUARTRxBuffer[NR_UART0][1];
+									 gI2CBuffer[2] = gUARTRxBuffer[NR_UART0][2];
+									 gI2CBuffer[3] = gUARTRxBuffer[NR_UART0][3];
+									 gI2CBuffer[4] = gUARTRxBuffer[NR_UART0][4];
+									 gI2CBuffer[5] = gUARTRxBuffer[NR_UART0][5];
 									 gI2CBuffer[6] = gUARTRxBuffer[NR_UART0][6];//update service time in c8051f ram
 									 gI2CBuffer[7] = gUARTRxBuffer[NR_UART0][7];//update laset service time in c8051f ram;
 									 gI2CBuffer[8] = gUARTRxBuffer[NR_UART0][8];
 									 gI2CBuffer[9] = gUARTRxBuffer[NR_UART0][9];
 									 gI2CBuffer[10] = gUARTRxBuffer[NR_UART0][10];
-									 gUartRecStatusFlag=0x00;
+									 gUartRecStatusFlag=0x3c;
 									 gUARTInputFirst[NR_UART0]=0;
 							     gUARTBufferSize[NR_UART0]=0;
 									
@@ -353,7 +311,7 @@ void UART0_Interrupt(void) interrupt 4
 							
 						}
 						
-						if(gUARTInputFirst[NR_UART0]==14){
+						if(gUARTInputFirst[NR_UART0]==11){
 							gUARTInputFirst[NR_UART0]=0;
 							gUARTBufferSize[NR_UART0]=0;
 							gUartRecStatusFlag=0x00;

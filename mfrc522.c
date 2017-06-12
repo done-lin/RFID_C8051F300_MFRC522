@@ -585,7 +585,7 @@ signed char pcd_write(unsigned char addr,unsigned char *pData)
     return status;
 }
 
-
+#define DEF_SET_AUTH_KEYA
 #ifdef DEF_SET_AUTH_KEYA 
 signed char pcd_set_keyA(unsigned char addr,unsigned char *pData)
 {
