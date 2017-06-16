@@ -37,7 +37,7 @@ const PUNCTURE_INFO code myPunctureInfo={
 	0xaa//manufactureChecksum;//20
 };
 
-#define Lin_Debug
+//#define Lin_Debug
 void UART_send_str(unsigned char UartNr, unsigned char *ucString)
 {
 #ifdef Lin_Debug
@@ -180,6 +180,11 @@ void UART0_Interrupt(void) interrupt 4
 							TI0 = 1;
 							
 							break;
+						
+						case 0xa6:
+								gUartRecStatusFlag=0xa6;
+								break;
+						
 						case 0xC3:
 								gUartRecStatusFlag=0xc3;
 								gUARTInputFirst[NR_UART0]++;
@@ -227,70 +232,72 @@ void UART0_Interrupt(void) interrupt 4
 						
 						switch(gUARTInputFirst[NR_UART0])//the secode bytes after 0xc3
 						{
-							case 1://the first bytes after 0xc3, should be card id
+							case 3://the first bytes after 0xc3, should be card id
 								//SN, low 8
 								break;
 							
-							case 2:
+							case 4:
 								//SN, high 8
 								break;
 							
-							case 3:
+							case 5:
 								//country
 								break;
 							
-							case 4:
+							case 6:
 								//model
 								break;
 							
-							case 5://intervalTime
+							case 7://intervalTime
 								
 								break;
 							
-							case 6:
+							case 8:
 								//update RFID service time;
 								break;
 							//////////////////////////////////////////
-							case 7://update last service,in scond, low 8;
+							case 9://update last service,in scond, low 8;
 								break;
 							
-							case 8://last_service_time2
+							case 10://last_service_time2
 								break;
 							
-							case 9://last_service_time3
+							case 11://last_service_time3
 								break;
 							
-							case 10://last_service_time4, hight 8
+							case 12://last_service_time4, hight 8
 								break;
 							///////////////////////////////////////////
 							
-							case 11://checksum
-								//if(gByte[NR_UART0] != (unsigned char)(gUARTRxBuffer[NR_UART0][1] + gUARTRxBuffer[NR_UART0][2] + gUARTRxBuffer[NR_UART0][3] +
-								//	gUARTRxBuffer[NR_UART0][4] + gUARTRxBuffer[NR_UART0][5] + gUARTRxBuffer[NR_UART0][6] + gUARTRxBuffer[NR_UART0][7] +
-								//gUARTRxBuffer[NR_UART0][8]+gUARTRxBuffer[NR_UART0][9]+gUARTRxBuffer[NR_UART0][10]))//0x00 is reserve_2; 0xaa is manufactureSN;
-								//{
-								//	gUARTInputFirst[NR_UART0]=0;
-								//	gUARTBufferSize[NR_UART0]=0;
-								//	gUartRecStatusFlag = 0x00;
-								//	return ;
-								//} 
-								//else //update RFID, UPDATE service time and last service time;
+							case 13://checksum
+								if(gByte[NR_UART0] != (unsigned char)(gUARTRxBuffer[NR_UART0][1] + gUARTRxBuffer[NR_UART0][2] + gUARTRxBuffer[NR_UART0][3] +
+									gUARTRxBuffer[NR_UART0][4] + gUARTRxBuffer[NR_UART0][5] + gUARTRxBuffer[NR_UART0][6] + gUARTRxBuffer[NR_UART0][7] +
+								gUARTRxBuffer[NR_UART0][8]+gUARTRxBuffer[NR_UART0][9]+gUARTRxBuffer[NR_UART0][10]+gUARTRxBuffer[NR_UART0][11]))//0x00 is reserve_2; 0xaa is manufactureSN;
 								{
-									 gI2CBuffer[1] = gUARTRxBuffer[NR_UART0][1];
-									 gI2CBuffer[2] = gUARTRxBuffer[NR_UART0][2];
-									 gI2CBuffer[3] = gUARTRxBuffer[NR_UART0][3];
-									 gI2CBuffer[4] = gUARTRxBuffer[NR_UART0][4];
-									 gI2CBuffer[5] = gUARTRxBuffer[NR_UART0][5];
-									 gI2CBuffer[6] = gUARTRxBuffer[NR_UART0][6];//update service time in c8051f ram
-									 gI2CBuffer[7] = gUARTRxBuffer[NR_UART0][7];//update laset service time in c8051f ram;
-									 gI2CBuffer[8] = gUARTRxBuffer[NR_UART0][8];
-									 gI2CBuffer[9] = gUARTRxBuffer[NR_UART0][9];
-									 gI2CBuffer[10] = gUARTRxBuffer[NR_UART0][10];
+									gUARTInputFirst[NR_UART0]=0;
+									gUARTBufferSize[NR_UART0]=0;
+									gUartRecStatusFlag = 0x00;
+									return ;
+								} 
+								else //update RFID, UPDATE service time and last service time;
+								{
+									 gI2CBuffer[0] = gUARTRxBuffer[NR_UART0][1];//RESERVED
+									 gI2CBuffer[1] = gUARTRxBuffer[NR_UART0][2];//SN LOW8
+									 gI2CBuffer[2] = gUARTRxBuffer[NR_UART0][3];//SN HIGH8
+									 gI2CBuffer[3] = gUARTRxBuffer[NR_UART0][4];//COUNTRY
+									 gI2CBuffer[4] = gUARTRxBuffer[NR_UART0][5];//MODEL
+									 gI2CBuffer[5] = gUARTRxBuffer[NR_UART0][6];//INTERVAL TIME
+									 gI2CBuffer[6] = gUARTRxBuffer[NR_UART0][7];//update service time in c8051f ram
+									
+									 gI2CBuffer[7] = gUARTRxBuffer[NR_UART0][8];//update laset service time in c8051f ram;
+									 gI2CBuffer[8] = gUARTRxBuffer[NR_UART0][9];//laset service time 
+									 gI2CBuffer[9] = gUARTRxBuffer[NR_UART0][10];//laset service time 
+									 gI2CBuffer[10] = gUARTRxBuffer[NR_UART0][11];//laset service time 
 									 gUartRecStatusFlag=0x3c;
 									 gUARTInputFirst[NR_UART0]=0;
 							     gUARTBufferSize[NR_UART0]=0;
 									
-										gUARTTxBuffer[NR_UART0][0] = 0x4d;
+										gUARTTxBuffer[NR_UART0][0] = 0x4D;
 										gUARTTxBuffer[NR_UART0][1] = gCardSn[0];
 										gUARTTxBuffer[NR_UART0][2] = gCardSn[1];
 										gUARTTxBuffer[NR_UART0][3] = gCardSn[2];
@@ -311,7 +318,7 @@ void UART0_Interrupt(void) interrupt 4
 							
 						}
 						
-						if(gUARTInputFirst[NR_UART0]==11){
+						if(gUARTInputFirst[NR_UART0]==13){
 							gUARTInputFirst[NR_UART0]=0;
 							gUARTBufferSize[NR_UART0]=0;
 							gUartRecStatusFlag=0x00;

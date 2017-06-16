@@ -344,8 +344,8 @@ signed char pcd_reset(void)
 			return MI_ERR;
 		}
 		
-		while(gTXReady[NR_UART0]==0){;};
-		UART_send_str(NR_UART0, "rstok\n");
+		//while(gTXReady[NR_UART0]==0){;};
+		//UART_send_str(NR_UART0, "rstok\n");
     return MI_OK;
 }
 

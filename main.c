@@ -10,7 +10,8 @@
 	
 
 
-const unsigned char code gAuthentKeyA[2][6]={{0xff, 0xfff, 0xff, 0xff, 0xff, 0xff},
+const unsigned char code gAuthentKeyA[2][6]={
+	{0xff, 0xfff, 0xff, 0xff, 0xff, 0xff},
 	{0xf5, 0xf4, 0xf3, 0xf2, 0xf1, 0xf0}};
 		
 unsigned char gI2CBuffer[16];
@@ -32,9 +33,9 @@ void main(void)
 
 	
 //---- puntrueInit ----------//
-	if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
-		UART_send_str(NR_UART0, "PuntrueGuid Start\n\n");//send a string
-		}
+//	if(gTXReady[NR_UART0] == 1 && gUARTBufferSize[NR_UART0] == 0) {
+//		UART_send_str(NR_UART0, "PuntrueGuid Start\n\n");//send a string
+//		}
 	
 	
 	
@@ -113,18 +114,18 @@ void main(void)
 		for(i=0; i<4; i++){//get card id
 			gCardSn[i] = gI2CBuffer[i];
 		}
-		while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "CarIDok\n");
+		//while(gTXReady[NR_UART0]==0){;};
+		//UART_send_str(NR_UART0, "CarIDok\n");
 			
 		//////////////////////////////////////////////
 			
 		if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[0], gCardSn)== MI_OK ){
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "FirAuthOK\n");
+			//while(gTXReady[NR_UART0]==0){;};
+			//UART_send_str(NR_UART0, "FirAuthOK\n");
 			}else{
 				if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[1], gCardSn)== MI_OK ){
-					while(gTXReady[NR_UART0]==0){;};
-					UART_send_str(NR_UART0, "AutK2OK\n");
+					//while(gTXReady[NR_UART0]==0){;};
+					//UART_send_str(NR_UART0, "AutK2OK\n");
 						break;
 				}
 				else{
@@ -147,13 +148,13 @@ void main(void)
 		gI2CBuffer[10]= (unsigned char)(myPunctureInfo.lastServiceTime>>24);
 
 			if(pcd_write(1, gI2CBuffer) == MI_OK){
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "wrOK\n");
+			//while(gTXReady[NR_UART0]==0){;};
+			//UART_send_str(NR_UART0, "wrOK\n");
 				if(pcd_read(1,gI2CBuffer) == MI_OK){
-					while(gTXReady[NR_UART0]==0){;};
-					UART_send_str(NR_UART0, "2RdOK\n");
-					while(gTXReady[NR_UART0]==0){;};
-					UART_send_str(NR_UART0, "initRFID_OK\n");						
+					//while(gTXReady[NR_UART0]==0){;};
+					//UART_send_str(NR_UART0, "2RdOK\n");
+					//while(gTXReady[NR_UART0]==0){;};
+					//UART_send_str(NR_UART0, "initRFID_OK\n");						
 				} else {
 					while(gTXReady[NR_UART0]==0){;};
 					UART_send_str(NR_UART0, "2RdErr\n");
@@ -167,8 +168,8 @@ void main(void)
 LOOP2:			
 		//if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[0], gI2CBuffer)== MI_OK ){
 		  if(pcd_set_keyA(3, gAuthentKeyA[1])==MI_OK){//change password
-				while(gTXReady[NR_UART0]==0){;};
-				UART_send_str(NR_UART0, "keyCh\n");
+				//while(gTXReady[NR_UART0]==0){;};
+				//UART_send_str(NR_UART0, "keyCh\n");
 					break;
 			}else{
 					goto LOOP2;
@@ -234,8 +235,8 @@ LOOP2:
 				}
 		
 			if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[1], gCardSn)== MI_OK ){
-			while(gTXReady[NR_UART0]==0){;};
-			UART_send_str(NR_UART0, "SeAuthOK2\n");
+			//while(gTXReady[NR_UART0]==0){;};
+			//UART_send_str(NR_UART0, "SeAuthOK2\n");
 				break;
 			}
 			else
@@ -255,10 +256,10 @@ LOOP2:
 					if(pcd_write(1, gI2CBuffer) == MI_OK){
 						
 							if(pcd_read(1,gI2CBuffer) == MI_OK){
-								while(gTXReady[NR_UART0]==0){;};
-								UART_send_str(NR_UART0, "FinRdOK\n");
-								while(gTXReady[NR_UART0]==0){;};
-								UART_send_str(NR_UART0, "All_ok\n");
+								//while(gTXReady[NR_UART0]==0){;};
+								//UART_send_str(NR_UART0, "FinRdOK\n");
+								//while(gTXReady[NR_UART0]==0){;};
+								//UART_send_str(NR_UART0, "All_ok\n");
 								gUartRecStatusFlag = 0x00;
 							} else {
 								while(gTXReady[NR_UART0]==0){;};
@@ -268,9 +269,66 @@ LOOP2:
 					} else {
 						while(gTXReady[NR_UART0]==0){;};
 						UART_send_str(NR_UART0, "FinWrErr\n");
-						continue;
+						
+						((void(code *)(void))0x00)();
+					
 					}
 				}
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+				if(gUartRecStatusFlag==0xa6)
+				{
+					pcd_reset();
+				
+						if(pcd_request(gI2CBuffer, &i) != MI_OK) {
+						while(gTXReady[NR_UART0]==0){;};
+						UART_send_str(NR_UART0, "RQERR3\n");
+						continue ;
+						}
+					
+						if(pcd_anti_coll(gI2CBuffer) != MI_OK){
+						while(gTXReady[NR_UART0]==0){;};
+						UART_send_str(NR_UART0, "AtColEr3\n");
+						continue ; 
+						}
+
+					if(pcd_select(gI2CBuffer) != MI_OK){
+						while(gTXReady[NR_UART0]==0){;};
+						UART_send_str(NR_UART0, "SelErr3\n");
+						continue ;
+						}
+						
+					for(i=0; i<4; i++){//get card id
+						gCardSn[i] = gI2CBuffer[i];
+						}
+								
+					if( pcd_auth_state(PICC_AUTHENT1A, 1, gAuthentKeyA[1], gCardSn)== MI_OK ){
+					//while(gTXReady[NR_UART0]==0){;};
+					//UART_send_str(NR_UART0, "SeAuthOK3\n");
+					}
+					else
+					{
+						while(gTXReady[NR_UART0]==0){;};
+						UART_send_str(NR_UART0, "AuthERR3\n");
+						continue;
+					}
+					
+					if(pcd_read(1,gI2CBuffer) == MI_OK){
+								//while(gTXReady[NR_UART0]==0){;};
+								//UART_send_str(NR_UART0, "readOK3\n");
+									
+								while(gTXReady[NR_UART0]==0){;};
+								UART_send_array(NR_UART0, gI2CBuffer, 11);
+									
+								gUartRecStatusFlag = 0x00;
+							} else {
+								while(gTXReady[NR_UART0]==0){;};
+								UART_send_str(NR_UART0, "readErr3\n");
+									gUartRecStatusFlag = 0x00;
+							}
+				
+				}
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+				
 			}
 			
 	/////////////////////
